@@ -42,8 +42,10 @@ public static class FileExplorerHelper
         string foregroundClass = GetWindowClassName(foreground);
         string rootClass = GetWindowClassName(root);
         bool desktopFocused = DesktopClasses.Contains(foregroundClass) || DesktopClasses.Contains(rootClass);
-        bool explorerFocused = IsExplorerProcessWindow(foreground) || IsExplorerProcessWindow(root)
-            || ExplorerClasses.Contains(foregroundClass) || ExplorerClasses.Contains(rootClass);
+        bool explorerFocused = IsExplorerProcessWindow(foreground)
+            || IsExplorerProcessWindow(root)
+            || ExplorerClasses.Contains(foregroundClass)
+            || ExplorerClasses.Contains(rootClass);
 
         if (!desktopFocused && !explorerFocused)
         {
@@ -113,17 +115,24 @@ public static class FileExplorerHelper
         return false;
     }
 
-    public static string DescribeContext(ExplorerSelectionContext context)
-        => $"foreground=0x{context.ForegroundWindow.ToInt64():X}({context.ForegroundClassName}), root=0x{context.RootWindow.ToInt64():X}({context.RootClassName}), desktop={context.IsDesktopContext}";
+    public static string DescribeContext(ExplorerSelectionContext context) =>
+        $"foreground=0x{context.ForegroundWindow.ToInt64():X}({context.ForegroundClassName}), root=0x{context.RootWindow.ToInt64():X}({context.RootClassName}), desktop={context.IsDesktopContext}";
 
     private static string? GetSelectedPath(ExplorerSelectionContext context)
     {
+        if (context.IsDesktopContext)
+        {
+            string? desktopPath = GetSelectedDesktopPathViaListView();
+            if (!string.IsNullOrWhiteSpace(desktopPath))
+                return desktopPath;
+        }
+
         string? path = GetSelectedPathViaShellAutomation(context);
         if (!string.IsNullOrWhiteSpace(path))
             return path;
 
         if (context.IsDesktopContext)
-            return GetSelectedDesktopPathViaListView();
+            LogService.Write("Desktop selection could not be resolved from the desktop list view or shell automation.");
 
         return null;
     }
@@ -131,7 +140,8 @@ public static class FileExplorerHelper
     private static string? GetSelectedPathViaShellAutomation(ExplorerSelectionContext context)
     {
         Type? shellType = Type.GetTypeFromProgID("Shell.Application");
-        if (shellType is null) return null;
+        if (shellType is null)
+            return null;
 
         dynamic shell = Activator.CreateInstance(shellType)!;
         dynamic windows = shell.Windows();
@@ -139,7 +149,8 @@ public static class FileExplorerHelper
         for (int i = 0; i < windows.Count; i++)
         {
             dynamic? win = windows.Item(i);
-            if (win is null) continue;
+            if (win is null)
+                continue;
 
             try
             {
@@ -157,7 +168,8 @@ public static class FileExplorerHelper
                     continue;
 
                 dynamic? doc = win.Document;
-                if (doc is null) continue;
+                if (doc is null)
+                    continue;
 
                 string? path = null;
                 try
@@ -174,18 +186,26 @@ public static class FileExplorerHelper
                     try
                     {
                         if (selected is not null && selected.Count > 0)
-                            path = (string?)selected.Item(0)?.Path;
+                        {
+                            dynamic? selectedItem = selected!.Item(0);
+                            path = selectedItem is not null ? (string?)selectedItem.Path : null;
+                        }
                     }
                     catch
                     {
                     }
                 }
 
-                if (!string.IsNullOrWhiteSpace(path))
+                if (string.IsNullOrWhiteSpace(path))
+                    continue;
+
+                if (context.IsDesktopContext && !IsDesktopPath(path))
                 {
-                    LogService.Write($"Selection resolved via shell automation: {path}");
-                    return path;
+                    LogService.Write($"Ignoring non-desktop shell selection while desktop is focused: {path}");
+                    continue;
                 }
+
+                return path;
             }
             catch
             {
@@ -194,6 +214,26 @@ public static class FileExplorerHelper
         }
 
         return null;
+    }
+
+    private static bool IsDesktopPath(string path)
+    {
+        string normalizedPath = Path.GetFullPath(path.Trim());
+        string userDesktop = EnsureTrailingSeparator(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory));
+        string commonDesktop = EnsureTrailingSeparator(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory));
+
+        return normalizedPath.StartsWith(userDesktop, StringComparison.OrdinalIgnoreCase)
+            || normalizedPath.StartsWith(commonDesktop, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string EnsureTrailingSeparator(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return string.Empty;
+
+        return path.EndsWith(Path.DirectorySeparatorChar)
+            ? path
+            : path + Path.DirectorySeparatorChar;
     }
 
     private static string? GetSelectedDesktopPathViaListView()
@@ -218,21 +258,15 @@ public static class FileExplorerHelper
         string userDesktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
         string userPath = Path.Combine(userDesktop, itemName);
         if (File.Exists(userPath) || Directory.Exists(userPath))
-        {
-            LogService.Write($"Selection resolved via desktop list view: {userPath}");
             return userPath;
-        }
 
         string commonDesktop = Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory);
         string commonPath = Path.Combine(commonDesktop, itemName);
         if (File.Exists(commonPath) || Directory.Exists(commonPath))
-        {
-            LogService.Write($"Selection resolved via common desktop list view: {commonPath}");
             return commonPath;
-        }
 
-        LogService.Write($"Desktop list view returned item name without existing file match: {itemName}");
-        return userPath;
+        LogService.Write($"Ignoring desktop list view item without existing file match: {itemName}");
+        return null;
     }
 
     private static IntPtr FindDesktopListView()
@@ -297,10 +331,19 @@ public static class FileExplorerHelper
             int textBufferSize = maxChars * 2;
             int lvItemSize = Marshal.SizeOf<NativeMethods.LVITEM>();
 
-            remoteText = NativeMethods.VirtualAllocEx(process, IntPtr.Zero, (UIntPtr)textBufferSize,
-                NativeMethods.MEM_COMMIT | NativeMethods.MEM_RESERVE, NativeMethods.PAGE_READWRITE);
-            remoteLvItem = NativeMethods.VirtualAllocEx(process, IntPtr.Zero, (UIntPtr)lvItemSize,
-                NativeMethods.MEM_COMMIT | NativeMethods.MEM_RESERVE, NativeMethods.PAGE_READWRITE);
+            remoteText = NativeMethods.VirtualAllocEx(
+                process,
+                IntPtr.Zero,
+                (UIntPtr)textBufferSize,
+                NativeMethods.MEM_COMMIT | NativeMethods.MEM_RESERVE,
+                NativeMethods.PAGE_READWRITE);
+
+            remoteLvItem = NativeMethods.VirtualAllocEx(
+                process,
+                IntPtr.Zero,
+                (UIntPtr)lvItemSize,
+                NativeMethods.MEM_COMMIT | NativeMethods.MEM_RESERVE,
+                NativeMethods.PAGE_READWRITE);
 
             if (remoteText == IntPtr.Zero || remoteLvItem == IntPtr.Zero)
                 return null;
@@ -332,8 +375,10 @@ public static class FileExplorerHelper
         {
             if (remoteLvItem != IntPtr.Zero)
                 NativeMethods.VirtualFreeEx(process, remoteLvItem, UIntPtr.Zero, NativeMethods.MEM_RELEASE);
+
             if (remoteText != IntPtr.Zero)
                 NativeMethods.VirtualFreeEx(process, remoteText, UIntPtr.Zero, NativeMethods.MEM_RELEASE);
+
             NativeMethods.CloseHandle(process);
         }
     }
@@ -342,6 +387,7 @@ public static class FileExplorerHelper
     {
         int size = Marshal.SizeOf<T>();
         IntPtr buffer = Marshal.AllocHGlobal(size);
+
         try
         {
             Marshal.StructureToPtr(value, buffer, false);
@@ -392,4 +438,5 @@ public readonly record struct ExplorerSelectionContext(
     bool IsDesktopContext,
     string ForegroundClassName,
     string RootClassName);
+
 

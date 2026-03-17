@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -11,8 +11,11 @@
     <RootNamespace>DashLook</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>..\..\assets\DashLook.ico</ApplicationIcon>
-    <Version>1.0.20</Version>
+    <Version>1.1.0</Version>
     <Authors>ARG RABBI</Authors>
+    <Company>RotexIT</Company>
+    <Product>DashLook</Product>
+    <PackageProjectUrl>https://rotexit.com/</PackageProjectUrl>
     <Description>Instant file preview for Windows - press Space to preview any file</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Platforms>AnyCPU;x64</Platforms>
@@ -28,6 +31,7 @@
     <ProjectReference Include="..\DashLook.Plugin.ArchiveViewer\DashLook.Plugin.ArchiveViewer.csproj" />
     <ProjectReference Include="..\DashLook.Plugin.FontViewer\DashLook.Plugin.FontViewer.csproj" />
     <ProjectReference Include="..\DashLook.Plugin.VideoViewer\DashLook.Plugin.VideoViewer.csproj" />
+    <ProjectReference Include="..\DashLook.Plugin.FolderViewer\DashLook.Plugin.FolderViewer.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -53,6 +57,7 @@
       <BuiltInPluginAssembly Include="..\DashLook.Plugin.ArchiveViewer\bin\$(Configuration)\net9.0-windows\DashLook.Plugin.ArchiveViewer.dll" />
       <BuiltInPluginAssembly Include="..\DashLook.Plugin.FontViewer\bin\$(Configuration)\net9.0-windows\DashLook.Plugin.FontViewer.dll" />
       <BuiltInPluginAssembly Include="..\DashLook.Plugin.VideoViewer\bin\$(Configuration)\net9.0-windows\DashLook.Plugin.VideoViewer.dll" />
+      <BuiltInPluginAssembly Include="..\DashLook.Plugin.FolderViewer\bin\$(Configuration)\net9.0-windows\DashLook.Plugin.FolderViewer.dll" />
     </ItemGroup>
 
     <Copy SourceFiles="@(BuiltInPluginAssembly)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />

@@ -9,25 +9,29 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Video surface -->
         <vlc:VideoView x:Name="VideoView"
                        Grid.Row="0"
                        Background="Black"/>
 
-        <!-- Audio placeholder when no video track -->
         <Border x:Name="AudioPlaceholder"
                 Grid.Row="0"
-                Background="#181825"
+                Background="{DynamicResource ContentBackground}"
                 Visibility="Collapsed">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                <TextBlock Text="🎵" FontSize="72" HorizontalAlignment="Center"/>
-                <TextBlock x:Name="AudioFileName" FontSize="16" Foreground="#CDD6F4"
-                           HorizontalAlignment="Center" Margin="0,12,0,0"/>
+                <TextBlock Text="Audio"
+                           FontSize="28"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextSecondary}"
+                           HorizontalAlignment="Center"/>
+                <TextBlock x:Name="AudioFileName"
+                           FontSize="16"
+                           Foreground="{DynamicResource TextPrimary}"
+                           HorizontalAlignment="Center"
+                           Margin="0,12,0,0"/>
             </StackPanel>
         </Border>
 
-        <!-- Controls bar -->
-        <Border Grid.Row="1" Background="#1E1E2E" Padding="12,8">
+        <Border Grid.Row="1" Background="{DynamicResource WindowBackground}" Padding="12,8">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -36,19 +40,18 @@
                     <ColumnDefinition Width="80"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Play/Pause -->
                 <Button x:Name="PlayPauseBtn"
                         Grid.Column="0"
-                        Content="⏸"
-                        FontSize="16"
+                        Content="Pause"
+                        FontSize="12"
                         Background="Transparent"
-                        Foreground="#CDD6F4"
+                        Foreground="{DynamicResource TextPrimary}"
                         BorderThickness="0"
                         Cursor="Hand"
-                        Width="36" Height="36"
+                        MinWidth="56"
+                        Height="36"
                         Click="PlayPause_Click"/>
 
-                <!-- Progress -->
                 <Slider x:Name="ProgressSlider"
                         Grid.Column="1"
                         Margin="8,0"
@@ -56,16 +59,14 @@
                         VerticalAlignment="Center"
                         ValueChanged="Progress_ValueChanged"/>
 
-                <!-- Time -->
                 <TextBlock x:Name="TimeText"
                            Grid.Column="2"
                            Text="0:00 / 0:00"
-                           Foreground="#A6ADC8"
+                           Foreground="{DynamicResource TextSecondary}"
                            FontSize="11"
                            VerticalAlignment="Center"
                            Margin="0,0,8,0"/>
 
-                <!-- Volume -->
                 <Slider x:Name="VolumeSlider"
                         Grid.Column="3"
                         Minimum="0" Maximum="100"

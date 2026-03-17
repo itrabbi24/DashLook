@@ -1,4 +1,4 @@
-<Window x:Class="DashLook.Windows.UpdateDialog"
+﻿<Window x:Class="DashLook.Windows.UpdateDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Update Available - DashLook"
@@ -71,10 +71,10 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Root" Property="Background" Value="#15FFFFFF"/>
+                                <Setter TargetName="Root" Property="Background" Value="{DynamicResource HoverBackground}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Root" Property="Background" Value="#22FFFFFF"/>
+                                <Setter TargetName="Root" Property="Background" Value="{DynamicResource PressedBackground}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="Root" Property="Opacity" Value="0.55"/>
@@ -186,3 +186,4 @@
         </Grid>
     </Border>
 </Window>
+

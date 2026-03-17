@@ -1,5 +1,5 @@
-; DashLook Inno Setup Script
-; Developer: ARG RABBI — https://itrabbi24.github.io/
+﻿; DashLook Inno Setup Script
+; Developer: ARG RABBI - https://itrabbi24.github.io/
 
 #ifndef AppVersion
   #define AppVersion "1.0.0"
@@ -9,12 +9,11 @@
 #endif
 
 #define MyAppName      "DashLook"
-#define MyAppPublisher "ARG RABBI"
-#define MyAppURL       "https://itrabbi24.github.io/"
+#define MyAppPublisher "RotexIT"
+#define MyAppURL       "https://rotexit.com/"
 #define MyAppExe       "DashLook.exe"
 
 [Setup]
-; {{  = escaped literal {  — required so Inno Setup doesn't treat the GUID as a constant
 AppId={{DCA7F3B1-4E2A-4F3D-9B1C-8E2D7A4B5C6F}
 AppName={#MyAppName}
 AppVersion={#AppVersion}
@@ -36,7 +35,6 @@ Compression=lzma2/ultra64
 SolidCompression=yes
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0
-; Per-user install — no UAC prompt, HKCU registry access is clean
 PrivilegesRequired=lowest
 
 [Languages]
@@ -47,7 +45,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "startup"; Description: "Start DashLook automatically when Windows starts"; GroupDescription: "Options:"
 
 [Files]
-Source: "{#PublishDir}\{#MyAppExe}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"
@@ -59,8 +57,10 @@ Root: HKCU; Subkey: "Software\DashLook"; ValueType: string; ValueName: "Develope
 Root: HKCU; Subkey: "Software\DashLook"; ValueType: string; ValueName: "Version"; ValueData: "{#AppVersion}"
 
 [Run]
-Filename: "{#MyAppURL}"; Description: "Visit developer website (itrabbi24.github.io)"; Flags: nowait postinstall shellexec skipifsilent unchecked
+Filename: "{#MyAppURL}"; Description: "Visit RotexIT (ROTEXIT.COM)"; Flags: nowait postinstall shellexec skipifsilent unchecked
 Filename: "{app}\{#MyAppExe}"; Description: "Launch DashLook"; Flags: nowait postinstall skipifsilent
 
 [UninstallRun]
 Filename: "taskkill.exe"; Parameters: "/F /IM {#MyAppExe}"; Flags: runhidden; RunOnceId: "KillDashLook"
+
+

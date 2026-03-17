@@ -1,4 +1,4 @@
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
@@ -13,18 +13,18 @@ public static class ThemeManager
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "DashLook", "settings.json");
 
-    private static readonly Uri DarkUri  = new("pack://application:,,,/Resources/Themes/Dark.xaml");
+    private static readonly Uri DarkUri = new("pack://application:,,,/Resources/Themes/Dark.xaml");
     private static readonly Uri LightUri = new("pack://application:,,,/Resources/Themes/Light.xaml");
+    private static bool _systemThemeHooked;
 
     public static AppTheme Current { get; private set; } = AppTheme.Dark;
 
     public static event EventHandler? ThemeChanged;
 
-    // ── Public API ────────────────────────────────────────────────────────
-
     public static void Initialize()
     {
         Current = LoadPreference();
+        HookSystemThemeChanges();
         ApplyInternal(Current, save: false);
     }
 
@@ -34,28 +34,6 @@ public static class ThemeManager
         ApplyInternal(theme, save: true);
         ThemeChanged?.Invoke(null, EventArgs.Empty);
     }
-
-    // ── Internals ─────────────────────────────────────────────────────────
-
-    private static void ApplyInternal(AppTheme theme, bool save)
-    {
-        var effective = theme == AppTheme.System ? GetSystemTheme() : theme;
-        var uri       = effective == AppTheme.Light ? LightUri : DarkUri;
-
-        var merged = Application.Current.Resources.MergedDictionaries;
-
-        // Remove the old theme dict (if any)
-        var old = merged.FirstOrDefault(d =>
-            d.Source == DarkUri || d.Source == LightUri);
-        if (old != null) merged.Remove(old);
-
-        // Insert new theme dict at index 0 (before Styles.xaml)
-        merged.Insert(0, new ResourceDictionary { Source = uri });
-
-        if (save) SavePreference(theme);
-    }
-
-    // ── System theme detection ────────────────────────────────────────────
 
     public static AppTheme GetSystemTheme()
     {
@@ -72,19 +50,79 @@ public static class ThemeManager
         }
     }
 
-    // ── Persistence ───────────────────────────────────────────────────────
+    private static void ApplyInternal(AppTheme theme, bool save)
+    {
+        var effectiveTheme = theme == AppTheme.System ? GetSystemTheme() : theme;
+        var uri = effectiveTheme == AppTheme.Light ? LightUri : DarkUri;
+
+        var mergedDictionaries = Application.Current.Resources.MergedDictionaries;
+        var themeDictionaries = mergedDictionaries
+            .Where(dictionary => IsThemeDictionary(dictionary.Source))
+            .ToList();
+
+        foreach (var dictionary in themeDictionaries)
+            mergedDictionaries.Remove(dictionary);
+
+        mergedDictionaries.Insert(0, new ResourceDictionary { Source = uri });
+
+        if (save)
+            SavePreference(theme);
+    }
+
+    private static bool IsThemeDictionary(Uri? source)
+    {
+        if (source is null)
+            return false;
+
+        string value = source.OriginalString.Replace('\\', '/');
+        return value.EndsWith("/Resources/Themes/Dark.xaml", StringComparison.OrdinalIgnoreCase)
+            || value.EndsWith("/Resources/Themes/Light.xaml", StringComparison.OrdinalIgnoreCase)
+            || value.EndsWith("Resources/Themes/Dark.xaml", StringComparison.OrdinalIgnoreCase)
+            || value.EndsWith("Resources/Themes/Light.xaml", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void HookSystemThemeChanges()
+    {
+        if (_systemThemeHooked)
+            return;
+
+        SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
+        _systemThemeHooked = true;
+    }
+
+    private static void OnUserPreferenceChanged(object? sender, UserPreferenceChangedEventArgs e)
+    {
+        if (Current != AppTheme.System)
+            return;
+
+        if (Application.Current?.Dispatcher is null)
+            return;
+
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            ApplyInternal(Current, save: false);
+            ThemeChanged?.Invoke(null, EventArgs.Empty);
+        });
+    }
 
     private static AppTheme LoadPreference()
     {
         try
         {
-            if (!File.Exists(SettingsPath)) return AppTheme.System;
+            if (!File.Exists(SettingsPath))
+                return AppTheme.System;
+
             var json = File.ReadAllText(SettingsPath);
-            var doc  = JsonDocument.Parse(json);
-            if (doc.RootElement.TryGetProperty("theme", out var el))
-                return Enum.TryParse<AppTheme>(el.GetString(), out var t) ? t : AppTheme.System;
+            var doc = JsonDocument.Parse(json);
+            if (doc.RootElement.TryGetProperty("theme", out var element))
+                return Enum.TryParse<AppTheme>(element.GetString(), out var theme)
+                    ? theme
+                    : AppTheme.System;
         }
-        catch { /* ignore — fall back to System */ }
+        catch
+        {
+        }
+
         return AppTheme.System;
     }
 
@@ -97,6 +135,8 @@ public static class ThemeManager
                 new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(SettingsPath, json);
         }
-        catch { /* ignore */ }
+        catch
+        {
+        }
     }
 }

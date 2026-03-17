@@ -9,10 +9,10 @@ namespace DashLook.Plugin.VideoViewer;
 
 public partial class VideoViewerControl : UserControl
 {
-    private LibVLC?       _libVlc;
-    private MediaPlayer?  _player;
-    private Media?        _media;
-    private bool          _isDragging;
+    private LibVLC? _libVlc;
+    private MediaPlayer? _player;
+    private Media? _media;
+    private bool _isDragging = false;
     private DispatcherTimer? _timer;
 
     public VideoViewerControl(string path, bool isAudio)
@@ -47,30 +47,37 @@ public partial class VideoViewerControl : UserControl
 
     private void UpdateProgress(object? sender, EventArgs e)
     {
-        if (_player is null || _isDragging) return;
+        if (_player is null || _isDragging)
+            return;
+
         ProgressSlider.Value = _player.Position;
 
-        long total  = _player.Length / 1000;
+        long total = _player.Length / 1000;
         long current = (long)(_player.Position * total);
         TimeText.Text = $"{current / 60}:{current % 60:D2} / {total / 60}:{total % 60:D2}";
-        PlayPauseBtn.Content = _player.IsPlaying ? "⏸" : "▶";
+        PlayPauseBtn.Content = _player.IsPlaying ? "Pause" : "Play";
     }
 
     private void PlayPause_Click(object sender, RoutedEventArgs e)
     {
-        if (_player?.IsPlaying == true) _player.Pause();
-        else _player?.Play();
+        if (_player?.IsPlaying == true)
+            _player.Pause();
+        else
+            _player?.Play();
     }
 
     private void Progress_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        if (!_isDragging) return;
+        if (!_isDragging)
+            return;
+
         _player!.Position = (float)e.NewValue;
     }
 
     private void Volume_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        if (_player is not null) _player.Volume = (int)e.NewValue;
+        if (_player is not null)
+            _player.Volume = (int)e.NewValue;
     }
 
     public void DisposeMedia()
@@ -82,3 +89,4 @@ public partial class VideoViewerControl : UserControl
         _libVlc?.Dispose();
     }
 }
+

@@ -1,60 +1,92 @@
-# DashLook local build test - run before pushing to catch errors early
+# DashLook local build test - run before pushing.
 # Usage: powershell scripts/test-local.ps1
+
+$ErrorActionPreference = 'Stop'
 
 $root = Split-Path $PSScriptRoot -Parent
 Set-Location $root
 
 $failed = $false
+$timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+$version = (Select-String -Path 'src/DashLook/DashLook.csproj' -Pattern '<Version>([^<]+)</Version>').Matches[0].Groups[1].Value
+$tempRoot = Join-Path $root ("dist/local-check-$timestamp")
+$publishDir = Join-Path $tempRoot 'win-setup'
+$relativePublishDir = '..\' + $publishDir.Substring($root.Length + 1)
+$installerVersion = "$version-local"
 
 function Step([string]$name, [scriptblock]$action) {
     Write-Host ""
     Write-Host "==> $name" -ForegroundColor Cyan
-    & $action
-    if ($LASTEXITCODE -ne 0) {
+
+    $global:LASTEXITCODE = 0
+    $succeeded = $true
+
+    try {
+        & $action
+    }
+    catch {
+        Write-Host $_ -ForegroundColor Red
+        $succeeded = $false
+    }
+
+    if (-not $succeeded -or $LASTEXITCODE -ne 0) {
         Write-Host "FAILED: $name" -ForegroundColor Red
         $script:failed = $true
-    } else {
+    }
+    else {
         Write-Host "OK: $name" -ForegroundColor Green
     }
 }
 
-Step "Build Windows app" {
-    dotnet build src/DashLook/DashLook.csproj --configuration Release --no-incremental -v quiet
-}
-
-Step "Build Linux app" {
-    dotnet build src/DashLook.Linux/DashLook.Linux.csproj --configuration Release --no-incremental -v quiet
-}
-
-Step "Publish Windows single-file for installer" {
-    # Stop any running DashLook instance and clear stale output to avoid file locks
+Step 'Prepare staging paths' {
     Stop-Process -Name DashLook -Force -ErrorAction SilentlyContinue
-    Start-Sleep -Milliseconds 500
-    Remove-Item -Recurse -Force dist/win-setup -ErrorAction SilentlyContinue
-    dotnet publish src/DashLook/DashLook.csproj `
-        --configuration Release --runtime win-x64 --self-contained true `
-        --output dist/win-setup -p:PublishSingleFile=true `
-        -p:IncludeNativeLibrariesForSelfExtract=true -p:Version=0.0.0 -v quiet
+    Start-Sleep -Milliseconds 350
+    Remove-Item -Recurse -Force $tempRoot -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Path $publishDir -Force | Out-Null
 }
 
-Step "Build Inno Setup installer" {
+Step 'Build Windows app' {
+    dotnet build src/DashLook/DashLook.csproj --configuration Release --no-incremental --disable-build-servers -v quiet
+}
+
+Step 'Publish Windows single-file for installer' {
+    dotnet publish src/DashLook/DashLook.csproj `
+        --configuration Release `
+        --runtime win-x64 `
+        --self-contained true `
+        --output $publishDir `
+        --disable-build-servers `
+        -p:PublishSingleFile=true `
+        -p:IncludeNativeLibrariesForSelfExtract=true `
+        -p:Version=$version `
+        -v quiet
+}
+
+Step 'Build Inno Setup installer' {
     $iscc = @(
-        "C:\Program Files (x86)\Inno Setup 6\ISCC.exe",
-        "C:\Program Files\Inno Setup 6\ISCC.exe"
+        'C:\Program Files (x86)\Inno Setup 6\ISCC.exe',
+        'C:\Program Files\Inno Setup 6\ISCC.exe'
     ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+
     if (-not $iscc) {
-        Write-Host "Inno Setup not installed - skipping (CI will build it)" -ForegroundColor Yellow
+        Write-Host 'Inno Setup not installed - skipping (CI will build it)' -ForegroundColor Yellow
         $global:LASTEXITCODE = 0
         return
     }
-    & $iscc installer/DashLook.iss /DAppVersion=0.0.0 "/DPublishDir=..\dist\win-setup" /Q
+
+    & $iscc installer/DashLook.iss /DAppVersion=$installerVersion "/DPublishDir=$relativePublishDir" /Q
+}
+
+Step 'Shutdown dotnet build servers' {
+    dotnet build-server shutdown | Out-Null
 }
 
 Write-Host ""
 if ($failed) {
-    Write-Host "One or more steps FAILED. Fix errors before pushing." -ForegroundColor Red
+    Write-Host 'One or more steps FAILED. Fix errors before pushing.' -ForegroundColor Red
     exit 1
-} else {
-    Write-Host "All checks passed - safe to push." -ForegroundColor Green
-    exit 0
 }
+
+Write-Host "Local build output: $publishDir" -ForegroundColor DarkGray
+Write-Host 'All checks passed - safe to push.' -ForegroundColor Green
+exit 0

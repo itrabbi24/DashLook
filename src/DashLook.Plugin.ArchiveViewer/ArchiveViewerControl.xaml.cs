@@ -12,8 +12,7 @@ public partial class ArchiveViewerControl : UserControl
         InitializeComponent();
         _allItems = entries.Select(e => new ArchiveEntryViewModel(e)).ToList();
         FileList.ItemsSource = _allItems;
-        FooterText.Text = $"{entries.Count(e => !e.IsDirectory)} files, " +
-                          $"{entries.Count(e => e.IsDirectory)} folders";
+        FooterText.Text = $"{entries.Count(e => !e.IsDirectory)} files, {entries.Count(e => e.IsDirectory)} folders";
     }
 
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -31,8 +30,8 @@ public class ArchiveEntryViewModel
 
     public ArchiveEntryViewModel(ArchiveEntry entry) => _entry = entry;
 
-    public string DisplayName    => (_entry.IsDirectory ? "📁 " : "📄 ") + _entry.Name;
-    public string SizeText       => _entry.IsDirectory ? "" : ContextObject.FormatFileSize(_entry.Size);
-    public string CompressedText => _entry.IsDirectory ? "" : ContextObject.FormatFileSize(_entry.CompressedSize);
-    public string ModifiedText   => _entry.LastModified?.ToString("yyyy-MM-dd HH:mm") ?? "";
+    public string DisplayName => (_entry.IsDirectory ? "[Folder] " : "[File] ") + _entry.Name;
+    public string SizeText => _entry.IsDirectory ? string.Empty : ContextObject.FormatFileSize(_entry.Size);
+    public string CompressedText => _entry.IsDirectory ? string.Empty : ContextObject.FormatFileSize(_entry.CompressedSize);
+    public string ModifiedText => _entry.LastModified?.ToString("yyyy-MM-dd HH:mm") ?? string.Empty;
 }

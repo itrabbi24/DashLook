@@ -2,16 +2,16 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:avalon="http://icsharpcode.net/sharpdevelop/avalonedit"
-             Background="#181825">
+             Background="{DynamicResource ContentBackground}">
 
     <avalon:TextEditor x:Name="Editor"
                        FontFamily="Cascadia Code, Consolas, Courier New"
                        FontSize="13"
-                       Foreground="#CDD6F4"
-                       Background="#181825"
+                       Foreground="{DynamicResource TextPrimary}"
+                       Background="{DynamicResource ContentBackground}"
                        IsReadOnly="True"
                        ShowLineNumbers="True"
-                       LineNumbersForeground="#585B70"
+                       LineNumbersForeground="{DynamicResource TextDisabled}"
                        WordWrap="False"
                        HorizontalScrollBarVisibility="Auto"
                        VerticalScrollBarVisibility="Auto"

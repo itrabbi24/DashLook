@@ -1,81 +1,75 @@
-<div align="center">
+﻿<div align="center">
 
 <img src="assets/logo.svg" width="112" height="112" alt="DashLook logo"/>
 
 # DashLook
 
-Windows-first instant file preview. Select a file in File Explorer or on the desktop, then press `Space`.
+Instant file preview for Windows. Select a file on the desktop or in File Explorer, then press `Space`.
 
 [![Release](https://img.shields.io/github/v/release/itrabbi24/DashLook?style=flat-square&label=latest)](https://github.com/itrabbi24/DashLook/releases/latest)
-[![Build](https://img.shields.io/github/actions/workflow/status/itrabbi24/DashLook/build.yml?style=flat-square&label=build)](https://github.com/itrabbi24/DashLook/actions)
-[![Platform](https://img.shields.io/badge/Windows-10%20%2F%2011-0078D4?style=flat-square&logo=windows&logoColor=white)](https://github.com/itrabbi24/DashLook/releases/latest)
-[![License](https://img.shields.io/github/license/itrabbi24/DashLook?style=flat-square)](LICENSE)
+[![Windows](https://img.shields.io/badge/Windows-10%20%2F%2011-0078D4?style=flat-square&logo=windows&logoColor=white)](https://github.com/itrabbi24/DashLook/releases/latest)
 
 <img src="assets/logo-banner.svg" alt="DashLook banner"/>
 
 </div>
 
-## What it does
+## Why people use DashLook
 
-DashLook is a Quick Look-style preview app for Windows.
+DashLook gives you Quick Look-style file preview on Windows without opening the full app every time.
 
-- Select any supported file in File Explorer or on the desktop
-- Press `Space` to open a preview window
-- Press `Space` again to close it
-- Keep navigating and DashLook switches to the newly selected file
+- Press `Space` to preview the selected file
+- Press `Space` or `Esc` to close
+- Keep the preview open and switch files just by changing selection
+- Pin the preview on top when you want to compare files
+- Reopen recent previews from the system tray
 
-## What's new in v1.0.20
+## Features
 
-- built-in viewer plugin DLLs are now shipped next to the Windows executable so installed builds can actually preview files
-- captured shell context is now carried from the hotkey hook into preview resolution
-- desktop fallback stays available through the native desktop list view path
-- Linux projects and Linux release artifacts removed from the repo and CI
-- refreshed logo and banner assets for a cleaner Windows-first identity
+- desktop and File Explorer preview support
+- instant preview for text, code, PDF, images, archives, fonts, HTML, audio, and video
+- folder preview with summary cards
+- startup tray app with a lightweight fade banner
+- branded loading view while a preview is being prepared
+- recent preview history in the tray menu
+- dark, light, and system theme support
+- Windows-first single-instance app experience
 
-## Supported preview types
+## Supported file types
 
-- images: PNG, JPG, GIF, WebP, BMP, ICO, TIFF, SVG
-- text and code: TXT, MD, JSON, XML, YAML, source files
-- PDF documents
-- archives: ZIP, RAR, 7Z, TAR
-- fonts: TTF, OTF, WOFF, WOFF2
-- HTML and SVG content
-- video and audio through the installed viewer plugins
-
-## Download
-
-Get the latest Windows build from [Releases](https://github.com/itrabbi24/DashLook/releases/latest).
-
-Available release files:
-
-- `DashLook-*-Setup.exe`: installer with Start Menu entry
-- `DashLook-*-win-x64.exe`: single-file portable executable
-- `DashLook-*-windows-x64-portable.zip`: extracted portable folder build
+- images: `png`, `jpg`, `jpeg`, `gif`, `webp`, `bmp`, `ico`, `svg`
+- text and code: `txt`, `md`, `json`, `xml`, `yaml`, `log`, source files
+- documents: `pdf`
+- archives: `zip`, `rar`, `7z`, `tar`
+- fonts: `ttf`, `otf`, `woff`, `woff2`
+- web content: `html`, `svg`
+- media: common audio and video formats
+- folders: preview name, modified time, counts, and total size
 
 ## How to use
 
 1. Start DashLook.
-2. Select a file in File Explorer or on the desktop.
+2. Select a file or folder.
 3. Press `Space`.
-4. Press `Esc` or `Space` again to close the preview.
+4. Change selection to follow another file, or press `P` to pin the preview.
+5. Press `Enter` to open the file in its default app.
+6. Press `Space` or `Esc` to close.
 
-## Development
+## Download
 
-Build the Windows app locally:
+Download the latest Windows build from [Releases](https://github.com/itrabbi24/DashLook/releases/latest).
 
-```powershell
-dotnet build src\DashLook\DashLook.csproj -c Release
-```
+Release files:
 
-Publish a Windows test build locally:
+- `DashLook-*-Setup.exe`: installer build
+- `DashLook-*-win-x64.exe`: portable single-file build
+- `DashLook-*-windows-x64-portable.zip`: extracted portable folder build
 
-```powershell
-dotnet publish src\DashLook\DashLook.csproj -c Release -r win-x64 --self-contained true -o dist\hotfix-win -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
-```
+## Credit
 
-## Notes
+- Publisher: `RotexIT`
+- Website: [ROTEXIT.COM](https://rotexit.com/)
+- Developed by: `ARG RABBI`
 
-DashLook is inspired by the Quick Look interaction model on macOS and by mature Windows preview tools such as QuickLook, but the implementation in this repository stays native to this codebase.
+## Note
 
-
-
+DashLook is inspired by the fast preview experience popularized by Quick Look-style workflows, but this repository keeps its own Windows-first implementation.

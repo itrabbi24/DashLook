@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
@@ -15,91 +15,97 @@ public partial class PreviewWindow : Window
 
     public string CurrentFilePath { get; private set; }
 
-    // File type → emoji icon mapping
     private static readonly Dictionary<string, string> FileIcons = new(StringComparer.OrdinalIgnoreCase)
     {
-        // Images
-        { ".jpg",  "🖼" }, { ".jpeg", "🖼" }, { ".png", "🖼" }, { ".gif", "🖼" },
-        { ".webp", "🖼" }, { ".bmp",  "🖼" }, { ".svg", "🖼" }, { ".ico", "🖼" },
-        // Video
-        { ".mp4",  "🎬" }, { ".mkv", "🎬" }, { ".avi", "🎬" }, { ".mov", "🎬" },
-        { ".wmv",  "🎬" }, { ".flv", "🎬" }, { ".webm","🎬" },
-        // Audio
-        { ".mp3",  "🎵" }, { ".flac","🎵" }, { ".wav", "🎵" }, { ".aac", "🎵" },
-        { ".ogg",  "🎵" }, { ".m4a", "🎵" },
-        // Documents
-        { ".pdf",  "📕" }, { ".docx","📝" }, { ".doc", "📝" }, { ".xlsx","📊" },
-        { ".pptx", "📋" }, { ".epub","📚" },
-        // Code
-        { ".cs",   "💻" }, { ".py",  "💻" }, { ".js",  "💻" }, { ".ts",  "💻" },
-        { ".html", "🌐" }, { ".css", "🎨" }, { ".json","{ }" }, { ".xml", "🔖" },
-        // Archives
-        { ".zip",  "📦" }, { ".rar", "📦" }, { ".7z",  "📦" }, { ".tar", "📦" },
-        // Fonts
-        { ".ttf",  "🔤" }, { ".otf", "🔤" }, { ".woff","🔤" },
-        // Text
-        { ".txt",  "📄" }, { ".md",  "📝" }, { ".log", "📋" },
+        { ".jpg", "🖼" }, { ".jpeg", "🖼" }, { ".png", "🖼" }, { ".gif", "🖼" },
+        { ".webp", "🖼" }, { ".bmp", "🖼" }, { ".svg", "🖼" }, { ".ico", "🖼" },
+        { ".mp4", "🎬" }, { ".mkv", "🎬" }, { ".avi", "🎬" }, { ".mov", "🎬" },
+        { ".wmv", "🎬" }, { ".flv", "🎬" }, { ".webm", "🎬" },
+        { ".mp3", "🎵" }, { ".flac", "🎵" }, { ".wav", "🎵" }, { ".aac", "🎵" },
+        { ".ogg", "🎵" }, { ".m4a", "🎵" },
+        { ".pdf", "PDF" }, { ".docx", "DOC" }, { ".doc", "DOC" }, { ".xlsx", "XLS" },
+        { ".pptx", "PPT" }, { ".epub", "EPUB" },
+        { ".cs", "{}" }, { ".py", "{}" }, { ".js", "{}" }, { ".ts", "{}" },
+        { ".html", "<>" }, { ".css", "CSS" }, { ".json", "{}" }, { ".xml", "XML" },
+        { ".zip", "ZIP" }, { ".rar", "ZIP" }, { ".7z", "ZIP" }, { ".tar", "ZIP" },
+        { ".ttf", "Aa" }, { ".otf", "Aa" }, { ".woff", "Aa" },
+        { ".txt", "TXT" }, { ".md", "MD" }, { ".log", "LOG" },
     };
 
     public PreviewWindow(string filePath, IViewer viewer, PluginManager pluginManager)
     {
         InitializeComponent();
+        _pluginManager = pluginManager;
         CurrentFilePath = filePath;
         _currentViewer = viewer;
-        _pluginManager = pluginManager;
-        LoadFile(filePath, viewer);
+        UpdatePinButtonState();
+        _ = LoadFileAsync(filePath, viewer);
     }
 
-    private void LoadFile(string filePath, IViewer viewer)
+    private async Task LoadFileAsync(string filePath, IViewer viewer)
     {
         CurrentFilePath = filePath;
         _cts.Cancel();
+        _cts.Dispose();
         _cts = new CancellationTokenSource();
 
-        // Reset UI
         ViewerHost.Content = null;
         LoadingOverlay.Visibility = Visibility.Visible;
         ErrorOverlay.Visibility = Visibility.Collapsed;
 
         string fileName = Path.GetFileName(filePath);
+        if (string.IsNullOrWhiteSpace(fileName))
+            fileName = filePath;
+
         string ext = Path.GetExtension(filePath);
+        bool isDirectory = Directory.Exists(filePath);
 
         TitleText.Text = fileName;
-        FileTypeIcon.Text = FileIcons.TryGetValue(ext, out var icon) ? icon : "📄";
+        FileTypeIcon.Text = isDirectory ? "📁" : FileIcons.TryGetValue(ext, out var icon) ? icon : "FILE";
 
-        var context = new ContextObject();
-        context.FilePath = filePath;
-        context.OnReady  = () => Dispatcher.Invoke(() => ShowViewer(viewer, context));
-        context.OnError  = (msg) => Dispatcher.Invoke(() => ShowError(msg));
-
-        // Get file size
-        try
+        var context = new ContextObject
         {
-            var fi = new FileInfo(filePath);
-            context.FileSize = ContextObject.FormatFileSize(fi.Length);
-        }
-        catch { /* ignore */ }
+            FilePath = filePath,
+            FileType = isDirectory ? "Folder" : string.Empty,
+        };
 
-        // Update status bar
-        FileSizeText.Text = context.FileSize;
-
-        _ = Task.Run(async () =>
+        if (!isDirectory)
         {
             try
             {
-                await viewer.PrepareAsync(filePath, context, _cts.Token);
-                context.OnReady?.Invoke();
+                var fileInfo = new FileInfo(filePath);
+                context.FileSize = ContextObject.FormatFileSize(fileInfo.Length);
             }
-            catch (OperationCanceledException) { }
-            catch (PreviewNotSupportedException ex)
+            catch
             {
-                context.OnError?.Invoke(ex.Message);
             }
-            catch (Exception ex)
-            {
-                context.OnError?.Invoke($"Preview failed: {ex.Message}");
-            }
-        }, _cts.Token);
+        }
+
+        FileTypeText.Text = context.FileType;
+        FileSizeText.Text = context.FileSize;
+
+        try
+        {
+            LogService.Write($"Preparing viewer {viewer.GetType().FullName} for {filePath}");
+            await viewer.PrepareAsync(filePath, context, _cts.Token);
+            _cts.Token.ThrowIfCancellationRequested();
+            ShowViewer(viewer, context);
+            LogService.Write($"Viewer ready: {viewer.GetType().FullName}");
+        }
+        catch (OperationCanceledException)
+        {
+            LogService.Write($"Preview load canceled for {filePath}");
+        }
+        catch (PreviewNotSupportedException ex)
+        {
+            LogService.Write($"Preview not supported for {filePath}: {ex.Message}");
+            ShowError(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            LogService.Write($"Preview failed for {filePath}: {ex}");
+            ShowError($"Preview failed: {ex.Message}");
+        }
     }
 
     private void ShowViewer(IViewer viewer, ContextObject context)
@@ -110,10 +116,9 @@ public partial class PreviewWindow : Window
         if (!string.IsNullOrEmpty(context.FileType))
             FileTypeText.Text = context.FileType;
 
-        if (!string.IsNullOrEmpty(context.FileSize))
-            FileSizeText.Text = context.FileSize;
+        FileSizeText.Text = context.FileSize;
 
-        Width  = Math.Max(MinWidth,  Math.Min(context.PreferredSize.Width,  SystemParameters.WorkArea.Width  * 0.9));
+        Width = Math.Max(MinWidth, Math.Min(context.PreferredSize.Width, SystemParameters.WorkArea.Width * 0.9));
         Height = Math.Max(MinHeight, Math.Min(context.PreferredSize.Height, SystemParameters.WorkArea.Height * 0.9));
         CenterOnScreen();
     }
@@ -121,7 +126,7 @@ public partial class PreviewWindow : Window
     private void ShowError(string message)
     {
         LoadingOverlay.Visibility = Visibility.Collapsed;
-        ErrorOverlay.Visibility   = Visibility.Visible;
+        ErrorOverlay.Visibility = Visibility.Visible;
         ErrorText.Text = message;
     }
 
@@ -129,9 +134,14 @@ public partial class PreviewWindow : Window
     {
         _currentViewer?.Cleanup();
         var viewer = _pluginManager.FindViewer(filePath);
-        if (viewer is null) { ShowError("No plugin found for this file type."); return; }
+        if (viewer is null)
+        {
+            ShowError("No plugin found for this file type.");
+            return;
+        }
+
         _currentViewer = viewer;
-        LoadFile(filePath, viewer);
+        _ = LoadFileAsync(filePath, viewer);
     }
 
     public void ClosePreview()
@@ -143,11 +153,22 @@ public partial class PreviewWindow : Window
 
     private void CenterOnScreen()
     {
-        Left = (SystemParameters.WorkArea.Width  - Width)  / 2;
-        Top  = (SystemParameters.WorkArea.Height - Height) / 2;
+        Left = (SystemParameters.WorkArea.Width - Width) / 2;
+        Top = (SystemParameters.WorkArea.Height - Height) / 2;
     }
 
-    // ── Event handlers ────────────────────────────────────────────────────────
+    private void UpdatePinButtonState()
+    {
+        PinButton.Content = Topmost ? "Unpin" : "Pin";
+        PinButton.ToolTip = Topmost ? "Disable always-on-top" : "Keep this preview on top";
+        PinButton.FontWeight = Topmost ? FontWeights.SemiBold : FontWeights.Normal;
+    }
+
+    private void TogglePinnedState()
+    {
+        Topmost = !Topmost;
+        UpdatePinButtonState();
+    }
 
     private void Window_KeyDown(object sender, KeyEventArgs e)
     {
@@ -156,23 +177,38 @@ public partial class PreviewWindow : Window
             ClosePreview();
             e.Handled = true;
         }
-        else if (e.Key == Key.Enter || e.Key == Key.Return)
+        else if (e.Key is Key.Enter or Key.Return)
         {
             OpenExternal_Click(sender, e);
+            e.Handled = true;
+        }
+        else if (e.Key == Key.P)
+        {
+            TogglePinnedState();
+            e.Handled = true;
         }
     }
 
     private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (e.ClickCount == 2) WindowState = WindowState == WindowState.Maximized
-            ? WindowState.Normal : WindowState.Maximized;
-        else DragMove();
+        if (e.ClickCount == 2)
+            WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        else
+            DragMove();
     }
+
+    private void PinButton_Click(object sender, RoutedEventArgs e) => TogglePinnedState();
 
     private void OpenExternal_Click(object sender, RoutedEventArgs e)
     {
-        try { Process.Start(new ProcessStartInfo(CurrentFilePath) { UseShellExecute = true }); }
-        catch (Exception ex) { MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error); }
+        try
+        {
+            Process.Start(new ProcessStartInfo(CurrentFilePath) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     private void Close_Click(object sender, RoutedEventArgs e) => ClosePreview();
@@ -181,6 +217,7 @@ public partial class PreviewWindow : Window
     {
         _cts.Cancel();
         _currentViewer?.Cleanup();
+        _cts.Dispose();
         base.OnClosed(e);
     }
 }
