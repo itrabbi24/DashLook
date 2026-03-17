@@ -99,6 +99,7 @@ Go to **[Releases](https://github.com/itrabbi24/DashLook/releases/latest)** and 
 
 | File | What it is |
 |------|-----------|
+| `DashLook-*-Setup.msi` | **Recommended** — full installer, adds Start Menu shortcut, auto-start on login |
 | `DashLook-*-win-x64.exe` | Single EXE — download and double-click, nothing to install |
 | `DashLook-*-windows-x64-portable.zip` | Portable ZIP — extract anywhere, run from USB drive |
 

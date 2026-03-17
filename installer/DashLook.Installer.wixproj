@@ -1,13 +1,15 @@
-<Project Sdk="WixToolset.Sdk/5.0.0">
+<Project Sdk="WixToolset.Sdk/5.0.2">
   <PropertyGroup>
-    <OutputName>DashLook-Setup</OutputName>
+    <OutputName>DashLook-$(Version)-Setup</OutputName>
     <OutputType>Package</OutputType>
     <Platform>x64</Platform>
-    <DefineConstants>
-      DashLook.TargetPath=$(SolutionDir)src\DashLook\bin\Release\net9.0-windows\DashLook.exe;
-      DashLook.TargetDir=$(SolutionDir)src\DashLook\bin\Release\net9.0-windows\
-    </DefineConstants>
+    <DefineConstants>PublishDir=$(SolutionDir)dist\win-setup;AppVersion=$(Version)</DefineConstants>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="5.*"/>
+    <PackageReference Include="WixToolset.Util.wixext" Version="5.*"/>
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Include="Product.wxs"/>

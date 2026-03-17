@@ -41,20 +41,21 @@ jobs:
       - name: Restore
         run: dotnet restore src/DashLook/DashLook.csproj
 
-      - name: Publish — single EXE
+      - name: Publish — single EXE + installer source
         shell: pwsh
         run: |
           dotnet publish src/DashLook/DashLook.csproj `
             --configuration Release `
             --runtime win-x64 `
             --self-contained true `
-            --output dist/win `
+            --output dist/win-setup `
             -p:PublishSingleFile=true `
             -p:IncludeNativeLibrariesForSelfExtract=true `
             -p:Version=${{ steps.ver.outputs.version }}
 
-          # Rename so it's clear in the release
-          Rename-Item dist/win/DashLook.exe "DashLook-${{ steps.ver.outputs.version }}-win-x64.exe"
+          # Copy for standalone EXE release before the installer uses it
+          Copy-Item dist/win-setup/DashLook.exe `
+            "dist/DashLook-${{ steps.ver.outputs.version }}-win-x64.exe"
 
       - name: Publish — portable ZIP
         shell: pwsh
@@ -69,13 +70,32 @@ jobs:
             -Path dist/win-portable/* `
             -DestinationPath "dist/DashLook-${{ steps.ver.outputs.version }}-windows-x64-portable.zip"
 
+      - name: Build MSI installer
+        shell: pwsh
+        run: |
+          dotnet build installer/DashLook.Installer.wixproj `
+            --configuration Release `
+            -p:SolutionDir="${{ github.workspace }}\" `
+            -p:Version=${{ steps.ver.outputs.version }}
+
+          # Find and copy the MSI to dist/
+          $msi = Get-ChildItem "installer/bin/Release/en-US/" -Filter "*.msi" | Select-Object -First 1
+          if ($msi) {
+            Copy-Item $msi.FullName "dist/DashLook-${{ steps.ver.outputs.version }}-Setup.msi"
+            Write-Host "MSI built: $($msi.Name)"
+          } else {
+            Write-Error "MSI not found in installer/bin/Release/en-US/"
+            exit 1
+          }
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: windows-artifacts
           path: |
-            dist/win/DashLook-${{ steps.ver.outputs.version }}-win-x64.exe
+            dist/DashLook-${{ steps.ver.outputs.version }}-win-x64.exe
             dist/DashLook-${{ steps.ver.outputs.version }}-windows-x64-portable.zip
+            dist/DashLook-${{ steps.ver.outputs.version }}-Setup.msi
 
   # ── Linux build ──────────────────────────────────────────────────────────────
   build-linux:
@@ -175,16 +195,22 @@ jobs:
           body: |
             ## DashLook ${{ steps.ver.outputs.tag }}
 
-            > Instant file preview for Windows and Linux
+            > Instant file preview for Windows and Linux — press `Space` to preview any file
 
             ### Download
 
             | Platform | File | Description |
             |---|---|---|
-            | 🪟 Windows | `DashLook-*-win-x64.exe` | Single EXE — just run it |
-            | 🪟 Windows | `DashLook-*-windows-x64-portable.zip` | Portable, no install needed |
+            | 🪟 Windows | `DashLook-*-Setup.msi` | Installer — recommended, adds to Start Menu & auto-start |
+            | 🪟 Windows | `DashLook-*-win-x64.exe` | Single EXE — just run it, no install needed |
+            | 🪟 Windows | `DashLook-*-windows-x64-portable.zip` | Portable ZIP — carry on USB, no install |
             | 🐧 Linux | `DashLook-*-linux-x64.tar.gz` | x64 (Ubuntu, Debian, Fedora…) |
             | 🐧 Linux | `DashLook-*-linux-arm64.tar.gz` | ARM64 (Raspberry Pi, etc.) |
+
+            ### Windows quick start
+            - **Installer (recommended):** run `DashLook-*-Setup.msi`, follow the wizard — DashLook starts automatically
+            - **Portable:** extract the ZIP or run the EXE directly — no install required
+            - Select any file in Explorer → press **`Space`** → instant preview
 
             ### Linux quick start
             ```bash
