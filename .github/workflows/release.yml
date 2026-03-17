@@ -77,14 +77,12 @@ jobs:
         run: choco install innosetup --no-progress -y
 
       - name: Build Setup installer (Inno Setup)
-        shell: cmd
+        shell: pwsh
         run: |
-          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" ^
-            installer\DashLook.iss ^
-            /DAppVersion=${{ steps.ver.outputs.version }} ^
-            "/DPublishDir=..\dist\win-setup"
-          copy "installer\bin\Release\DashLook-${{ steps.ver.outputs.version }}-Setup.exe" ^
-               "dist\DashLook-${{ steps.ver.outputs.version }}-Setup.exe"
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          & $iscc installer/DashLook.iss /DAppVersion=${{ steps.ver.outputs.version }} "/DPublishDir=..\dist\win-setup"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item "installer/bin/Release/DashLook-${{ steps.ver.outputs.version }}-Setup.exe" "dist/DashLook-${{ steps.ver.outputs.version }}-Setup.exe"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

@@ -1,51 +1,49 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
   <defs>
-    <!-- Background gradient: Catppuccin Mocha purple -> blue -->
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <!-- Background: Catppuccin Mocha purple → blue -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%"   stop-color="#CBA6F7"/>
       <stop offset="100%" stop-color="#89B4FA"/>
     </linearGradient>
-    <!-- Inner glow -->
-    <radialGradient id="innerGlow" cx="40%" cy="35%" r="60%">
-      <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.18"/>
+    <!-- Subtle top-left inner highlight -->
+    <radialGradient id="shine" cx="30%" cy="28%" r="55%">
+      <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.22"/>
       <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
     </radialGradient>
-    <!-- Drop shadow -->
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000000" flood-opacity="0.35"/>
+    <!-- Drop shadow for the tile -->
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="8"
+                    flood-color="#000000" flood-opacity="0.30"/>
     </filter>
-    <!-- Letter gradient: dark -->
-    <linearGradient id="letterGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%"   stop-color="#1E1E2E"/>
-      <stop offset="100%" stop-color="#313244"/>
-    </linearGradient>
   </defs>
 
-  <!-- Background rounded square -->
-  <rect x="18" y="18" width="220" height="220" rx="52" ry="52"
-        fill="url(#bgGrad)" filter="url(#shadow)"/>
+  <!-- Rounded tile -->
+  <rect x="12" y="12" width="232" height="232" rx="56" ry="56"
+        fill="url(#bg)" filter="url(#shadow)"/>
+  <rect x="12" y="12" width="232" height="232" rx="56" ry="56"
+        fill="url(#shine)"/>
 
-  <!-- Inner highlight -->
-  <rect x="18" y="18" width="220" height="220" rx="52" ry="52"
-        fill="url(#innerGlow)"/>
-
-  <!-- "D" letter — bold, centered -->
   <!--
-    Outer D shape: left bar + right semicircle
-    Left bar:   x=62..98,  y=52..204
-    Curve apex: x=204,     y=128  (center)
+    Bold "D" lettermark — drawn as a single even-odd path so it renders
+    crisply even at 16 × 16. The outer contour is a rectangle with a
+    rounded right edge; the inner cutout punches through it.
+
+    Outer shape  : left bar x=58–95, rounded right reaching x=198 at y=128
+    Inner cutout : starts at x=95, y=82, rounded right reaching x=163 at y=128
   -->
-  <path d="
-    M 62,52
-    L 98,52
-    C 98,52 204,52 204,128
-    C 204,204 98,204 98,204
-    L 62,204
+  <path fill-rule="evenodd"
+        fill="#1E1E2E"
+        d="
+    M 58,46
+    L 95,46
+    C 95,46 198,46 198,128
+    C 198,210 95,210 95,210
+    L 58,210
     Z
-    M 98,90
-    L 98,166
-    C 98,166 162,166 162,128
-    C 162,90  98,90  98,90
+
+    M 95,84
+    C 95,84 163,84 163,128
+    C 163,172 95,172 95,172
     Z
-  " fill="url(#letterGrad)" fill-rule="evenodd"/>
+  "/>
 </svg>
