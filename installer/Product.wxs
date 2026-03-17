@@ -3,12 +3,13 @@
   DashLook WiX v4 Installer
   Requires: WiX Toolset v4+
   Build:    dotnet build installer\DashLook.Installer.wixproj -c Release
+  Developer: ARG RABBI — https://itrabbi24.github.io/
 -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
 
   <Package Name="DashLook"
-           Manufacturer="ARG RABBI — itrabbi24.github.io"
+           Manufacturer="ARG RABBI"
            Version="1.0.0.0"
            UpgradeCode="DCA7F3B1-4E2A-4F3D-9B1C-8E2D7A4B5C6F"
            Language="1033"
@@ -16,17 +17,52 @@
            InstallerVersion="500"
            Compressed="yes">
 
-    <SummaryInformation Description="DashLook — Instant file preview for Windows"/>
+    <SummaryInformation Description="DashLook — Instant file preview for Windows. Developed by ARG RABBI (itrabbi24.github.io)"/>
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of DashLook is already installed." />
 
     <MediaTemplate EmbedCab="yes"/>
 
-    <!-- ── UI ── -->
+    <!-- ── UI ────────────────────────────────────────────────────────────── -->
     <ui:WixUI Id="WixUI_InstallDir"/>
     <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER"/>
 
-    <!-- ── Install directory ── -->
+    <!-- Finish dialog: show developer info and optional "open website" checkbox -->
+    <Property Id="WIXUI_EXITDIALOGOPTIONALTEXT"
+              Value="DashLook was installed successfully!&#10;&#10;Developed by ARG RABBI — itrabbi24.github.io&#10;Press Space in Explorer to preview any file." />
+
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT"
+              Value="Visit developer website (itrabbi24.github.io)" />
+
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1"/>
+
+    <!-- ── Launch app after install ──────────────────────────────────────── -->
+    <Property Id="WixShellExecTarget" Value="[INSTALLFOLDER]DashLook.exe"/>
+    <CustomAction Id="LaunchAppOnExit"
+                  BinaryRef="Wix4UtilCA_X64"
+                  DllEntry="WixShellExec"
+                  Impersonate="yes"
+                  Return="ignore"/>
+
+    <!-- Open developer profile if checkbox ticked on finish -->
+    <Property Id="DEVELOPER_PROFILE_URL" Value="https://itrabbi24.github.io/"/>
+    <CustomAction Id="OpenDevProfile"
+                  BinaryRef="Wix4UtilCA_X64"
+                  DllEntry="WixShellExec"
+                  Impersonate="yes"
+                  Return="ignore">
+      <ProgId Id="OpenDevProfileBrowser">
+        <Verb Id="open" Target="[DEVELOPER_PROFILE_URL]"/>
+      </ProgId>
+    </CustomAction>
+
+    <InstallExecuteSequence>
+      <Custom Action="LaunchAppOnExit" After="InstallFinalize">
+        NOT Installed AND NOT REMOVE
+      </Custom>
+    </InstallExecuteSequence>
+
+    <!-- ── Install directory ──────────────────────────────────────────────── -->
     <StandardDirectory Id="ProgramFiles6432Folder">
       <Directory Id="INSTALLFOLDER" Name="DashLook">
         <Directory Id="PLUGINSFOLDER" Name="Plugins"/>
@@ -38,41 +74,52 @@
     </StandardDirectory>
 
     <StandardDirectory Id="DesktopFolder"/>
-    <StandardDirectory Id="StartupFolder"/>
 
-    <!-- ── Components ── -->
+    <!-- ── Components ────────────────────────────────────────────────────── -->
     <ComponentGroup Id="MainExecutable" Directory="INSTALLFOLDER">
       <Component Id="DashLookExe" Guid="A1B2C3D4-1111-1111-1111-111111111111">
         <File Id="DashLookExeFile"
               Source="$(var.DashLook.TargetPath)"
               KeyPath="yes"/>
-        <!-- Auto-start on Windows login -->
+        <!-- Auto-start DashLook when Windows logs in -->
         <RegistryValue Root="HKCU"
                        Key="Software\Microsoft\Windows\CurrentVersion\Run"
                        Name="DashLook"
                        Value="[INSTALLFOLDER]DashLook.exe"
                        Type="string"/>
+        <!-- Store developer info in registry for About dialog -->
+        <RegistryValue Root="HKCU"
+                       Key="Software\DashLook"
+                       Name="Developer"
+                       Value="ARG RABBI — https://itrabbi24.github.io/"
+                       Type="string"/>
+        <RegistryValue Root="HKCU"
+                       Key="Software\DashLook"
+                       Name="Version"
+                       Value="1.0.0"
+                       Type="string"/>
       </Component>
 
-      <!-- Runtime files -->
       <Component Id="RuntimeFiles" Guid="B2C3D4E5-2222-2222-2222-222222222222">
         <File Source="$(var.DashLook.TargetDir)DashLook.Common.dll" KeyPath="yes"/>
       </Component>
     </ComponentGroup>
 
-    <!-- Plugin components (harvested by heat.exe in build script) -->
-    <ComponentGroup Id="Plugins" Directory="PLUGINSFOLDER">
-      <!-- Populated by WiX Heat during build — see scripts\build.ps1 -->
-    </ComponentGroup>
+    <!-- Plugin components -->
+    <ComponentGroup Id="Plugins" Directory="PLUGINSFOLDER"/>
 
-    <!-- Start menu shortcut -->
+    <!-- Start menu shortcuts -->
     <ComponentGroup Id="Shortcuts" Directory="ApplicationProgramsFolder">
       <Component Id="StartMenuShortcut" Guid="C3D4E5F6-3333-3333-3333-333333333333">
         <Shortcut Id="StartMenuShortcutDashLook"
                   Name="DashLook"
-                  Description="Instant file preview for Windows"
+                  Description="Instant file preview — by ARG RABBI"
                   Target="[INSTALLFOLDER]DashLook.exe"
                   WorkingDirectory="INSTALLFOLDER"/>
+        <Shortcut Id="StartMenuShortcutWebsite"
+                  Name="DashLook — Developer Website"
+                  Description="Visit ARG RABBI's developer profile"
+                  Target="https://itrabbi24.github.io/"/>
         <RemoveFolder Id="RemoveStartMenu" On="uninstall"/>
         <RegistryValue Root="HKCU"
                        Key="Software\DashLook"
@@ -83,12 +130,12 @@
       </Component>
     </ComponentGroup>
 
-    <!-- Desktop shortcut (optional) -->
+    <!-- Desktop shortcut -->
     <ComponentGroup Id="DesktopShortcuts" Directory="DesktopFolder">
       <Component Id="DesktopShortcut" Guid="D4E5F6A7-4444-4444-4444-444444444444">
-        <Condition>DESKTOP_SHORTCUT</Condition>
         <Shortcut Id="DesktopShortcutDashLook"
                   Name="DashLook"
+                  Description="Instant file preview for Windows"
                   Target="[INSTALLFOLDER]DashLook.exe"
                   WorkingDirectory="INSTALLFOLDER"/>
         <RegistryValue Root="HKCU"

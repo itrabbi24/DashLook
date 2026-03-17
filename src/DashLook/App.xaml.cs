@@ -27,6 +27,9 @@ public partial class App : Application
             return;
         }
 
+        // Register auto-start on first run (portable version)
+        StartupManager.EnsureFirstRunSetup();
+
         // Ensure Plugins directory exists
         string pluginsDir = Path.Combine(
             Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!,
