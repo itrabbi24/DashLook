@@ -11,9 +11,9 @@
     <RootNamespace>DashLook</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>..\..\assets\DashLook.ico</ApplicationIcon>
-    <Version>1.0.19</Version>
+    <Version>1.0.20</Version>
     <Authors>ARG RABBI</Authors>
-    <Description>Instant file preview for Windows — press Space to preview any file</Description>
+    <Description>Instant file preview for Windows - press Space to preview any file</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
@@ -37,16 +37,25 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Theme XAML files must be included as Resource so pack:// URIs resolve at runtime -->
-    <Resource Include="Resources\Themes\Dark.xaml"/>
-    <Resource Include="Resources\Themes\Light.xaml"/>
-    <Resource Include="Resources\dashlook_tray.ico"/>
+    <Resource Include="Resources\Themes\Dark.xaml" />
+    <Resource Include="Resources\Themes\Light.xaml" />
+    <Resource Include="Resources\dashlook_tray.ico" />
   </ItemGroup>
 
+  <Target Name="CopyBuiltInPluginAssemblies" AfterTargets="Publish">
+    <ItemGroup>
+      <BuiltInPluginAssembly Include="..\DashLook.Common\bin\$(Configuration)\net9.0-windows\DashLook.Common.dll" />
+      <BuiltInPluginAssembly Include="..\DashLook.Plugin.TextViewer\bin\$(Configuration)\net9.0-windows\DashLook.Plugin.TextViewer.dll" />
+      <BuiltInPluginAssembly Include="..\DashLook.Plugin.ImageViewer\bin\$(Configuration)\net9.0-windows\DashLook.Plugin.ImageViewer.dll" />
+      <BuiltInPluginAssembly Include="..\DashLook.Plugin.PdfViewer\bin\$(Configuration)\net9.0-windows\DashLook.Plugin.PdfViewer.dll" />
+      <BuiltInPluginAssembly Include="..\DashLook.Plugin.HtmlViewer\bin\$(Configuration)\net9.0-windows\DashLook.Plugin.HtmlViewer.dll" />
+      <BuiltInPluginAssembly Include="..\DashLook.Plugin.MarkdownViewer\bin\$(Configuration)\net9.0-windows\DashLook.Plugin.MarkdownViewer.dll" />
+      <BuiltInPluginAssembly Include="..\DashLook.Plugin.ArchiveViewer\bin\$(Configuration)\net9.0-windows\DashLook.Plugin.ArchiveViewer.dll" />
+      <BuiltInPluginAssembly Include="..\DashLook.Plugin.FontViewer\bin\$(Configuration)\net9.0-windows\DashLook.Plugin.FontViewer.dll" />
+      <BuiltInPluginAssembly Include="..\DashLook.Plugin.VideoViewer\bin\$(Configuration)\net9.0-windows\DashLook.Plugin.VideoViewer.dll" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(BuiltInPluginAssembly)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
+  </Target>
+
 </Project>
-
-
-
-
-
-

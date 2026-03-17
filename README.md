@@ -24,9 +24,9 @@ DashLook is a Quick Look-style preview app for Windows.
 - Press `Space` again to close it
 - Keep navigating and DashLook switches to the newly selected file
 
-## What's new in v1.0.19
+## What's new in v1.0.20
 
-- stronger Windows Explorer and desktop selection capture for `Space` preview
+- built-in viewer plugin DLLs are now shipped next to the Windows executable so installed builds can actually preview files
 - captured shell context is now carried from the hotkey hook into preview resolution
 - desktop fallback stays available through the native desktop list view path
 - Linux projects and Linux release artifacts removed from the repo and CI
@@ -76,3 +76,6 @@ dotnet publish src\DashLook\DashLook.csproj -c Release -r win-x64 --self-contain
 ## Notes
 
 DashLook is inspired by the Quick Look interaction model on macOS and by mature Windows preview tools such as QuickLook, but the implementation in this repository stays native to this codebase.
+
+
+

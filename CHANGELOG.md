@@ -2,6 +2,16 @@
 
 All notable changes to DashLook will be documented here.
 
+## [1.0.20] - 2026-03-17
+
+### Fixed
+- Preserved built-in viewer plugin DLLs next to the published Windows executable so the installed app can actually discover and load viewers.
+- Added plugin loading diagnostics to confirm which viewers are available at startup and why a viewer load fails.
+- Kept the captured Explorer/Desktop shell-context path for `Space` preview resolution.
+
+### Changed
+- Kept the repo Windows-only and retained the refreshed branding assets.
+
 ## [1.0.19] - 2026-03-17
 
 ### Fixed
