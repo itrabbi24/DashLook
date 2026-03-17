@@ -119,6 +119,7 @@ jobs:
         with:
           name: "DashLook ${{ github.ref_name }}"
           prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+          make_latest: true
           body: |
             ## DashLook ${{ github.ref_name }}
 
