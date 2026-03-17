@@ -21,11 +21,13 @@ public sealed class HotkeyManager : IDisposable
     public void Start()
     {
         _hookProc = HookCallback;
-        using var module = System.Diagnostics.Process.GetCurrentProcess().MainModule!;
+        // WH_KEYBOARD_LL runs in the calling thread — pass null to GetModuleHandle
+        // so it returns the current process module. This works correctly in
+        // single-file published apps where MainModule.ModuleName may not resolve.
         _hookHandle = NativeMethods.SetWindowsHookEx(
             WH_KEYBOARD_LL,
             _hookProc,
-            NativeMethods.GetModuleHandle(module.ModuleName),
+            NativeMethods.GetModuleHandle(null),
             0);
     }
 

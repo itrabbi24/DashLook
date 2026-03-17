@@ -33,11 +33,14 @@ Step "Publish Windows single-file for installer" {
         -p:IncludeNativeLibrariesForSelfExtract=true -p:Version=0.0.0 -v quiet
 }
 
-Step "Build MSI installer" {
-    dotnet build installer/DashLook.Installer.wixproj `
-        --configuration Release `
-        "-p:SolutionDir=$root\" `
-        -p:Version=0.0.0 -v quiet
+Step "Build Inno Setup installer" {
+    $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+    if (-not (Test-Path $iscc)) {
+        Write-Host "Inno Setup not installed locally - skipping installer build (CI will build it)" -ForegroundColor Yellow
+        $global:LASTEXITCODE = 0
+        return
+    }
+    & $iscc installer/DashLook.iss /DAppVersion=0.0.0 "/DPublishDir=..\dist\win-setup" /Q
 }
 
 Write-Host ""

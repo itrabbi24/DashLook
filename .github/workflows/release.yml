@@ -73,25 +73,18 @@ jobs:
             -Path dist/win-portable/* `
             -DestinationPath "dist/DashLook-${{ steps.ver.outputs.version }}-windows-x64-portable.zip"
 
-      - name: Build MSI installer
-        shell: pwsh
-        run: |
-          dotnet build installer/DashLook.Installer.wixproj `
-            --configuration Release `
-            -p:SolutionDir="${{ github.workspace }}\" `
-            -p:Version=${{ steps.ver.outputs.version }}
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
 
-          # Find and copy the MSI to dist/
-          # WiX v5 SDK outputs to bin/{Platform}/Release/ (not bin/Release/en-US/)
-          $msi = Get-ChildItem "installer/bin/" -Recurse -Filter "*.msi" | Select-Object -First 1
-          if ($msi) {
-            Copy-Item $msi.FullName "dist/DashLook-${{ steps.ver.outputs.version }}-Setup.msi"
-            Write-Host "MSI built: $($msi.FullName)"
-          } else {
-            Write-Error "MSI not found under installer/bin/"
-            Get-ChildItem "installer/bin/" -Recurse | ForEach-Object { Write-Host $_.FullName }
-            exit 1
-          }
+      - name: Build Setup installer (Inno Setup)
+        shell: cmd
+        run: |
+          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" ^
+            installer\DashLook.iss ^
+            /DAppVersion=${{ steps.ver.outputs.version }} ^
+            "/DPublishDir=..\dist\win-setup"
+          copy "installer\bin\Release\DashLook-${{ steps.ver.outputs.version }}-Setup.exe" ^
+               "dist\DashLook-${{ steps.ver.outputs.version }}-Setup.exe"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -100,7 +93,7 @@ jobs:
           path: |
             dist/DashLook-${{ steps.ver.outputs.version }}-win-x64.exe
             dist/DashLook-${{ steps.ver.outputs.version }}-windows-x64-portable.zip
-            dist/DashLook-${{ steps.ver.outputs.version }}-Setup.msi
+            dist/DashLook-${{ steps.ver.outputs.version }}-Setup.exe
 
   # ── Linux build ──────────────────────────────────────────────────────────────
   build-linux:
@@ -206,14 +199,14 @@ jobs:
 
             | Platform | File | Description |
             |---|---|---|
-            | 🪟 Windows | `DashLook-*-Setup.msi` | Installer — recommended, adds to Start Menu & auto-start |
+            | 🪟 Windows | `DashLook-*-Setup.exe` | Installer — recommended, adds to Start Menu & auto-start |
             | 🪟 Windows | `DashLook-*-win-x64.exe` | Single EXE — just run it, no install needed |
             | 🪟 Windows | `DashLook-*-windows-x64-portable.zip` | Portable ZIP — carry on USB, no install |
             | 🐧 Linux | `DashLook-*-linux-x64.tar.gz` | x64 (Ubuntu, Debian, Fedora…) |
             | 🐧 Linux | `DashLook-*-linux-arm64.tar.gz` | ARM64 (Raspberry Pi, etc.) |
 
             ### Windows quick start
-            - **Installer (recommended):** run `DashLook-*-Setup.msi`, follow the wizard — DashLook starts automatically
+            - **Installer (recommended):** run `DashLook-*-Setup.exe`, follow the wizard — DashLook starts automatically
             - **Portable:** extract the ZIP or run the EXE directly — no install required
             - Select any file in Explorer → press **`Space`** → instant preview
 
