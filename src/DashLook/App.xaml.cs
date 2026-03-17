@@ -221,9 +221,11 @@ public partial class App : Application
     // ── Space key handler ─────────────────────────────────────────────────────
     private void OnSpacePressed(object? sender, SpacePressedEventArgs e)
     {
-        Dispatcher.Invoke(() =>
+        // BeginInvoke (async) so the low-level keyboard hook returns immediately.
+        // Blocking inside a WH_KEYBOARD_LL callback causes Windows to drop the hook.
+        Dispatcher.BeginInvoke(() =>
         {
-            if (!FileExplorerHelper.TryGetSelectedFilePathWithRetry(out var filePath)) return;
+            if (!FileExplorerHelper.TryGetSelectedFilePath(out var filePath)) return;
             OpenPreview(filePath!);
         });
     }

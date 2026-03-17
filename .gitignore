@@ -61,3 +61,6 @@ installer/obj/
 
 # Publish output
 publish/
+
+# Local build output
+dist/
