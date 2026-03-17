@@ -1,7 +1,7 @@
 <Window x:Class="DashLook.Windows.UpdateDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Update Available — DashLook"
+        Title="Update Available - DashLook"
         Width="480" Height="320"
         WindowStyle="None"
         AllowsTransparency="True"
@@ -14,6 +14,78 @@
         <WindowChrome CaptionHeight="0" ResizeBorderThickness="0" CornerRadius="0" GlassFrameThickness="0"/>
     </WindowChrome.WindowChrome>
 
+    <Window.Resources>
+        <Style x:Key="PrimaryActionButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource AccentForeground}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentColor}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="16,9"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Opacity" Value="0.92"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="Opacity" Value="0.85"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Root" Property="Opacity" Value="0.62"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SecondaryActionButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#15FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#22FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Root" Property="Opacity" Value="0.55"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
     <Border Background="{DynamicResource WindowBackground}" CornerRadius="12" Margin="8"
             Effect="{StaticResource WindowShadow}">
         <Grid>
@@ -23,19 +95,16 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Title bar -->
             <Grid Grid.Row="0" MouseLeftButtonDown="TitleBar_MouseDown">
-                <TextBlock Text="🚀  Update Available"
+                <TextBlock Text="Update Available"
                            Foreground="{DynamicResource TextPrimary}" FontSize="13" FontWeight="SemiBold"
                            VerticalAlignment="Center" Margin="16,0"/>
-                <Button Content="✕" Style="{StaticResource CloseButton}"
+                <Button Content="X" Style="{StaticResource CloseButton}"
                         HorizontalAlignment="Right" Margin="0,0,8,0"
                         Click="Cancel_Click"/>
             </Grid>
 
-            <!-- Content -->
             <StackPanel Grid.Row="1" Margin="20,8,20,0">
-                <!-- Version info -->
                 <Grid Margin="0,0,0,16">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -53,7 +122,7 @@
                         </StackPanel>
                     </Border>
 
-                    <TextBlock Grid.Column="1" Text="→" FontSize="20" Foreground="{DynamicResource AccentColor}"
+                    <TextBlock Grid.Column="1" Text="->" FontSize="20" Foreground="{DynamicResource AccentColor}"
                                VerticalAlignment="Center" Margin="12,0"/>
 
                     <Border Grid.Column="2" Background="{DynamicResource SurfaceBackground}" CornerRadius="8" Padding="12,8"
@@ -68,7 +137,6 @@
                     </Border>
                 </Grid>
 
-                <!-- Release notes -->
                 <TextBlock Text="What's new:" Foreground="{DynamicResource TextSecondary}" FontSize="11" Margin="0,0,0,4"/>
                 <Border Background="{DynamicResource ContentBackground}" CornerRadius="6" Padding="10" Height="80">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -78,13 +146,12 @@
                     </ScrollViewer>
                 </Border>
 
-                <!-- Progress bar (hidden until download starts) -->
                 <Grid x:Name="ProgressArea" Visibility="Collapsed" Margin="0,12,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="8"/>
                     </Grid.RowDefinitions>
-                    <TextBlock x:Name="ProgressText" Foreground="{DynamicResource TextSecondary}" FontSize="11"
+                    <TextBlock x:Name="ProgressText" Foreground="{DynamicResource TextPrimary}" FontSize="11"
                                Margin="0,0,0,4"/>
                     <ProgressBar x:Name="ProgressBar" Grid.Row="1" Height="8"
                                  Minimum="0" Maximum="100"
@@ -92,7 +159,6 @@
                 </Grid>
             </StackPanel>
 
-            <!-- Buttons -->
             <Border Grid.Row="2" Padding="20,12" BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,1,0,0">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -108,32 +174,13 @@
 
                     <Button x:Name="SkipBtn" Grid.Column="1"
                             Content="Skip this version"
-                            Background="Transparent" Foreground="{DynamicResource TextDisabled}"
-                            BorderThickness="0" Padding="12,8"
-                            Cursor="Hand" Click="Cancel_Click"/>
+                            Style="{StaticResource SecondaryActionButton}"
+                            Click="Cancel_Click"/>
 
                     <Button x:Name="UpdateBtn" Grid.Column="3"
-                            Content="⬇  Download &amp; Install"
-                            Background="{DynamicResource AccentColor}" Foreground="{DynamicResource AccentForeground}"
-                            BorderThickness="0" Padding="16,9"
-                            FontWeight="SemiBold" Cursor="Hand"
-                            Click="Update_Click">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}"
-                                                    CornerRadius="8" Padding="{TemplateBinding Padding}">
-                                                <ContentPresenter HorizontalAlignment="Center"
-                                                                  VerticalAlignment="Center"/>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </Button.Style>
-                    </Button>
+                            Content="Download &amp; Install"
+                            Style="{StaticResource PrimaryActionButton}"
+                            Click="Update_Click"/>
                 </Grid>
             </Border>
         </Grid>

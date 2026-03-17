@@ -41,15 +41,10 @@ public sealed class HotkeyManager : IDisposable
         if (nCode >= 0 && wParam == WM_KEYDOWN)
         {
             var kbs = Marshal.PtrToStructure<NativeMethods.KBDLLHOOKSTRUCT>(lParam);
-            if (kbs.vkCode == VK_SPACE)
+            if (kbs.vkCode == VK_SPACE && FileExplorerHelper.IsExplorerContextFocused())
             {
-                // Trigger only when an actual file selection is available in Explorer.
-                if (FileExplorerHelper.TryGetSelectedFilePath(out var filePath) && filePath is not null)
-                {
-                    SpacePressed?.Invoke(this, new SpacePressedEventArgs(filePath));
-                    // Return 1 to suppress the Space key in File Explorer
-                    return (IntPtr)1;
-                }
+                SpacePressed?.Invoke(this, SpacePressedEventArgs.Instance);
+                return (IntPtr)1;
             }
         }
 
@@ -59,7 +54,7 @@ public sealed class HotkeyManager : IDisposable
     public void Dispose() => Stop();
 }
 
-public sealed class SpacePressedEventArgs(string filePath) : EventArgs
+public sealed class SpacePressedEventArgs : EventArgs
 {
-    public string FilePath { get; } = filePath;
+    public static SpacePressedEventArgs Instance { get; } = new();
 }

@@ -219,10 +219,13 @@ public partial class App : Application
     }
 
     // ── Space key handler ─────────────────────────────────────────────────────
-
     private void OnSpacePressed(object? sender, SpacePressedEventArgs e)
     {
-        Dispatcher.Invoke(() => OpenPreview(e.FilePath));
+        Dispatcher.Invoke(() =>
+        {
+            if (!FileExplorerHelper.TryGetSelectedFilePathWithRetry(out var filePath)) return;
+            OpenPreview(filePath!);
+        });
     }
 
     private void OpenPreview(string filePath)
@@ -245,7 +248,7 @@ public partial class App : Application
         _previewWindow.Show();
     }
 
-    // ── Cleanup ───────────────────────────────────────────────────────────────
+    // -- Cleanup ───────────────────────────────────────────────────────────────
 
     private void ExitApp()
     {
@@ -261,5 +264,7 @@ public partial class App : Application
         base.OnExit(e);
     }
 }
+
+
 
 

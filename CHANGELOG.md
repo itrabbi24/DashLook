@@ -2,6 +2,12 @@
 
 All notable changes to DashLook will be documented here.
 
+## [1.0.15] - 2026-03-17
+
+### Fixed
+- Space key trigger flow is now stable again by resolving selected file path on the app side instead of inside low-level keyboard hook callback.
+- Added explorer-context focus check before handling Space to avoid missed trigger states.
+- Improved update dialog button readability and interaction states (hover/disabled/cancel-download).
 ## [1.0.14] - 2026-03-17
 
 ### Fixed
@@ -32,5 +38,6 @@ All notable changes to DashLook will be documented here.
 - Single-instance enforcement
 - WiX MSI installer
 - GitHub Actions CI/CD pipeline
+
 
 
