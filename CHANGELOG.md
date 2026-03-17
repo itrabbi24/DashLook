@@ -2,6 +2,12 @@
 
 All notable changes to DashLook will be documented here.
 
+## [1.0.13] - 2026-03-17
+
+### Fixed
+- Space key preview trigger now resolves selected file directly instead of relying on fragile Explorer class checks.
+- Improved Explorer window matching using root window fallback for newer Explorer UI/tab contexts.
+- Reduced duplicate file-resolution work in hotkey flow by carrying selected file path in the hotkey event payload.
 ## [1.0.0] — 2024-03-17
 
 ### Added
@@ -21,3 +27,4 @@ All notable changes to DashLook will be documented here.
 - Single-instance enforcement
 - WiX MSI installer
 - GitHub Actions CI/CD pipeline
+

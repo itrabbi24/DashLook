@@ -1,5 +1,4 @@
 using System.Runtime.InteropServices;
-using System.Windows.Input;
 
 namespace DashLook.Services;
 
@@ -12,8 +11,8 @@ public sealed class HotkeyManager : IDisposable
     public event EventHandler<SpacePressedEventArgs>? SpacePressed;
 
     private const int WH_KEYBOARD_LL = 13;
-    private const int WM_KEYDOWN     = 0x0100;
-    private const int VK_SPACE       = 0x20;
+    private const int WM_KEYDOWN = 0x0100;
+    private const int VK_SPACE = 0x20;
 
     private IntPtr _hookHandle = IntPtr.Zero;
     private NativeMethods.LowLevelKeyboardProc? _hookProc; // Keep alive!
@@ -21,9 +20,6 @@ public sealed class HotkeyManager : IDisposable
     public void Start()
     {
         _hookProc = HookCallback;
-        // WH_KEYBOARD_LL runs in the calling thread — pass null to GetModuleHandle
-        // so it returns the current process module. This works correctly in
-        // single-file published apps where MainModule.ModuleName may not resolve.
         _hookHandle = NativeMethods.SetWindowsHookEx(
             WH_KEYBOARD_LL,
             _hookProc,
@@ -47,20 +43,23 @@ public sealed class HotkeyManager : IDisposable
             var kbs = Marshal.PtrToStructure<NativeMethods.KBDLLHOOKSTRUCT>(lParam);
             if (kbs.vkCode == VK_SPACE)
             {
-                // Only fire when File Explorer (or a file manager) is active
-                // and no text-input control has focus
-                if (FileExplorerHelper.IsFileExplorerFocused())
+                // Trigger only when an actual file selection is available in Explorer.
+                if (FileExplorerHelper.TryGetSelectedFilePath(out var filePath) && filePath is not null)
                 {
-                    SpacePressed?.Invoke(this, new SpacePressedEventArgs());
+                    SpacePressed?.Invoke(this, new SpacePressedEventArgs(filePath));
                     // Return 1 to suppress the Space key in File Explorer
                     return (IntPtr)1;
                 }
             }
         }
+
         return NativeMethods.CallNextHookEx(_hookHandle, nCode, wParam, lParam);
     }
 
     public void Dispose() => Stop();
 }
 
-public sealed class SpacePressedEventArgs : EventArgs { }
+public sealed class SpacePressedEventArgs(string filePath) : EventArgs
+{
+    public string FilePath { get; } = filePath;
+}

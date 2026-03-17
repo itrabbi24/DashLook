@@ -8,7 +8,7 @@ namespace DashLook.Services;
 /// </summary>
 internal static class NativeMethods
 {
-    // ── Keyboard hook ─────────────────────────────────────────────────────────
+    // -- Keyboard hook ---------------------------------------------------------
 
     public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
 
@@ -29,14 +29,14 @@ internal static class NativeMethods
     [StructLayout(LayoutKind.Sequential)]
     public struct KBDLLHOOKSTRUCT
     {
-        public uint   vkCode;
-        public uint   scanCode;
-        public uint   flags;
-        public uint   time;
+        public uint vkCode;
+        public uint scanCode;
+        public uint flags;
+        public uint time;
         public IntPtr dwExtraInfo;
     }
 
-    // ── Window / process ──────────────────────────────────────────────────────
+    // -- Window / process ------------------------------------------------------
 
     [DllImport("user32.dll")]
     public static extern IntPtr GetForegroundWindow();
@@ -50,11 +50,14 @@ internal static class NativeMethods
     [DllImport("user32.dll")]
     public static extern bool IsWindowVisible(IntPtr hWnd);
 
-    // ── Inter-process messaging ───────────────────────────────────────────────
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetAncestor(IntPtr hwnd, uint gaFlags);
+
+    // -- Inter-process messaging -----------------------------------------------
 
     private const int HWND_BROADCAST = 0xFFFF;
-    private const int WM_APP          = 0x8000;
-    public  const int WM_DASHLOOK_ACTIVATE = WM_APP + 0x444;
+    private const int WM_APP = 0x8000;
+    public const int WM_DASHLOOK_ACTIVATE = WM_APP + 0x444;
 
     [DllImport("user32.dll")]
     private static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);

@@ -222,9 +222,7 @@ public partial class App : Application
 
     private void OnSpacePressed(object? sender, SpacePressedEventArgs e)
     {
-        string? filePath = FileExplorerHelper.GetSelectedFilePath();
-        if (filePath is null) return;
-        Dispatcher.Invoke(() => OpenPreview(filePath));
+        Dispatcher.Invoke(() => OpenPreview(e.FilePath));
     }
 
     private void OpenPreview(string filePath)
@@ -263,3 +261,5 @@ public partial class App : Application
         base.OnExit(e);
     }
 }
+
+

@@ -1,6 +1,3 @@
-using System.Runtime.InteropServices;
-using System.Text;
-
 namespace DashLook.Services;
 
 /// <summary>
@@ -9,41 +6,27 @@ namespace DashLook.Services;
 /// </summary>
 public static class FileExplorerHelper
 {
-    // Class names of windows we consider "file managers"
-    private static readonly HashSet<string> ExplorerClasses = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "CabinetWClass",        // File Explorer window
-        "ExploreWClass",        // Legacy explorer
-        "Progman",              // Desktop
-        "WorkerW",              // Desktop (alternate)
-    };
-
-    /// <summary>
-    /// Returns true when the foreground window is a File Explorer window.
-    /// </summary>
-    public static bool IsFileExplorerFocused()
-    {
-        var hwnd = NativeMethods.GetForegroundWindow();
-        if (hwnd == IntPtr.Zero) return false;
-
-        var sb = new StringBuilder(256);
-        NativeMethods.GetClassName(hwnd, sb, sb.Capacity);
-        return ExplorerClasses.Contains(sb.ToString());
-    }
-
     /// <summary>
     /// Returns the path of the item selected in the foreground File Explorer
     /// window, or null if nothing is selected / the window is not Explorer.
     /// </summary>
     public static string? GetSelectedFilePath()
     {
+        TryGetSelectedFilePath(out var filePath);
+        return filePath;
+    }
+
+    public static bool TryGetSelectedFilePath(out string? filePath)
+    {
         try
         {
-            return GetSelectedPathViaShellAutomation();
+            filePath = GetSelectedPathViaShellAutomation();
+            return !string.IsNullOrWhiteSpace(filePath);
         }
         catch
         {
-            return null;
+            filePath = null;
+            return false;
         }
     }
 
@@ -53,10 +36,11 @@ public static class FileExplorerHelper
         Type? shellType = Type.GetTypeFromProgID("Shell.Application");
         if (shellType is null) return null;
 
-        dynamic shell   = Activator.CreateInstance(shellType)!;
+        dynamic shell = Activator.CreateInstance(shellType)!;
         dynamic windows = shell.Windows();
 
         IntPtr foreground = NativeMethods.GetForegroundWindow();
+        IntPtr foregroundRoot = NativeMethods.GetAncestor(foreground, 2); // GA_ROOT
 
         for (int i = 0; i < windows.Count; i++)
         {
@@ -65,15 +49,17 @@ public static class FileExplorerHelper
 
             try
             {
-                if ((IntPtr)win.HWND != foreground) continue;
+                IntPtr explorerHwnd = (IntPtr)win.HWND;
+                IntPtr explorerRoot = NativeMethods.GetAncestor(explorerHwnd, 2); // GA_ROOT
+                if (explorerHwnd != foreground && explorerRoot != foregroundRoot) continue;
 
                 dynamic? doc = win.Document;
                 if (doc is null) continue;
 
                 // Try to get the focused item first, fall back to first selected item
                 string? path = null;
-                try   { path = (string?)doc.FocusedItem?.Path; }
-                catch { /* no focused item */ }
+                try { path = (string?)doc.FocusedItem?.Path; }
+                catch { }
 
                 if (path is null)
                 {
@@ -84,7 +70,10 @@ public static class FileExplorerHelper
 
                 return path;
             }
-            catch { continue; }
+            catch
+            {
+                continue;
+            }
         }
 
         return null;

@@ -11,7 +11,7 @@
     <RootNamespace>DashLook</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>..\..\assets\DashLook.ico</ApplicationIcon>
-    <Version>1.0.0</Version>
+    <Version>1.0.13</Version>
     <Authors>ARG RABBI</Authors>
     <Description>Instant file preview for Windows — press Space to preview any file</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -44,3 +44,4 @@
   </ItemGroup>
 
 </Project>
+
