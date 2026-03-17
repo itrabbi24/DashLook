@@ -27,8 +27,10 @@ Step "Build Linux app" {
 }
 
 Step "Publish Windows single-file for installer" {
-    # Stop any running DashLook instance so the output EXE is not locked
+    # Stop any running DashLook instance and clear stale output to avoid file locks
     Stop-Process -Name DashLook -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Milliseconds 500
+    Remove-Item -Recurse -Force dist/win-setup -ErrorAction SilentlyContinue
     dotnet publish src/DashLook/DashLook.csproj `
         --configuration Release --runtime win-x64 --self-contained true `
         --output dist/win-setup -p:PublishSingleFile=true `
