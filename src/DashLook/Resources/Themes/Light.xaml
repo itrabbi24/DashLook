@@ -1,0 +1,36 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ── DashLook Light Theme (Catppuccin Latte) ───────────────────────── -->
+
+    <SolidColorBrush x:Key="WindowBackground"     Color="#EFF1F5"/>
+    <SolidColorBrush x:Key="SurfaceBackground"    Color="#CCD0DA"/>
+    <SolidColorBrush x:Key="ContentBackground"    Color="#E6E9EF"/>
+    <SolidColorBrush x:Key="StatusBarBackground"  Color="#DCE0E8"/>
+    <SolidColorBrush x:Key="HoverBackground"      Color="#D5D9E0"/>
+    <SolidColorBrush x:Key="PressedBackground"    Color="#C5C9D4"/>
+
+    <SolidColorBrush x:Key="TextPrimary"          Color="#4C4F69"/>
+    <SolidColorBrush x:Key="TextSecondary"        Color="#6C6F85"/>
+    <SolidColorBrush x:Key="TextDisabled"         Color="#9CA0B0"/>
+
+    <SolidColorBrush x:Key="AccentColor"          Color="#7287FD"/>
+    <SolidColorBrush x:Key="AccentLight"          Color="#8EA0FF"/>
+    <SolidColorBrush x:Key="AccentDark"           Color="#5A70E0"/>
+    <SolidColorBrush x:Key="AccentForeground"     Color="#FFFFFF"/>
+
+    <SolidColorBrush x:Key="ErrorColor"           Color="#D20F39"/>
+    <SolidColorBrush x:Key="SuccessColor"         Color="#40A02B"/>
+    <SolidColorBrush x:Key="WarningColor"         Color="#DF8E1D"/>
+
+    <SolidColorBrush x:Key="CloseButtonHover"     Color="#D20F39"/>
+    <SolidColorBrush x:Key="TitleBarButtonHover"  Color="#CCD0DA"/>
+
+    <SolidColorBrush x:Key="BorderColor"          Color="#BCC0CC"/>
+    <SolidColorBrush x:Key="BorderLight"          Color="#ACB0BE"/>
+
+    <DropShadowEffect x:Key="WindowShadow"
+                      Color="#9CA0B0" Direction="270"
+                      ShadowDepth="2" BlurRadius="16" Opacity="0.3"/>
+
+</ResourceDictionary>

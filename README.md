@@ -53,7 +53,7 @@ It sits silently in your system tray and watches what you select in File Explore
 - 🔁 **Toggle to close** — same `Space` key closes the preview; or press `Esc`
 - 📌 **Pin window** — keep the preview floating on top of any other app
 - ⌨️ **Keyboard first** — navigate, zoom, and close entirely without touching the mouse
-- 🌙 **Dark theme** — elegant Catppuccin-inspired dark UI, easy on the eyes at any hour
+- 🌙 **Dark / Light / System theme** — switch themes from the tray menu; System mode follows your Windows setting automatically at any hour
 - ⚡ **Starts with Windows** — DashLook lives in the system tray and auto-starts on login
 - 🪶 **Lightweight** — under 50 MB, tiny memory footprint, zero background file scanning
 - 🔄 **Auto-update** — notified automatically when a new version is available, one click to install
@@ -183,6 +183,7 @@ Right-click the DashLook icon in the system tray to access:
 | **Check for Updates…** | Manually check if a new version is available |
 | **Find new Plugins…** | Opens the plugins wiki page on GitHub |
 | **Open Data Folder** | Opens the DashLook app data folder in Explorer |
+| **Theme → Dark / Light / System** | Switch between dark theme, light theme, or follow Windows setting |
 | **Run at Startup** | Toggle whether DashLook starts with Windows |
 | **Restart** | Restart the app |
 | **Quit** | Exit DashLook completely |

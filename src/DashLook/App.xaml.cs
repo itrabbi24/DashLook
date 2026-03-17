@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using DashLook.Services;
 using DashLook.Windows;
+using static DashLook.Services.AppTheme;
 using Hardcodet.Wpf.TaskbarNotification;
 
 namespace DashLook;
@@ -32,6 +33,9 @@ public partial class App : Application
             Shutdown();
             return;
         }
+
+        // Load and apply saved theme (dark/light/system)
+        ThemeManager.Initialize();
 
         // First-run setup (startup registry entry for portable)
         StartupManager.EnsureFirstRunSetup();
@@ -104,6 +108,13 @@ public partial class App : Application
         };
         menu.Items.Add(dataItem);
 
+        // Theme submenu
+        var themeMenu = new MenuItem { Header = "Theme" };
+        AddThemeItem(themeMenu, "Dark",   AppTheme.Dark);
+        AddThemeItem(themeMenu, "Light",  AppTheme.Light);
+        AddThemeItem(themeMenu, "System", AppTheme.System);
+        menu.Items.Add(themeMenu);
+
         menu.Items.Add(new Separator());
 
         // Run at Startup (checkmark toggle)
@@ -142,6 +153,24 @@ public partial class App : Application
 
         _trayIcon!.ContextMenu = menu;
         _trayIcon.TrayMouseDoubleClick += (_, _) => CheckForUpdatesManual();
+    }
+
+    private void AddThemeItem(MenuItem parent, string label, AppTheme theme)
+    {
+        var item = new MenuItem
+        {
+            Header      = label,
+            IsCheckable = true,
+            IsChecked   = ThemeManager.Current == theme,
+        };
+        item.Click += (_, _) =>
+        {
+            ThemeManager.Apply(theme);
+            // Refresh checkmarks on all sibling items
+            foreach (MenuItem sibling in parent.Items)
+                sibling.IsChecked = sibling.Header?.ToString() == ThemeManager.Current.ToString();
+        };
+        parent.Items.Add(item);
     }
 
     // ── Update handling ───────────────────────────────────────────────────────
