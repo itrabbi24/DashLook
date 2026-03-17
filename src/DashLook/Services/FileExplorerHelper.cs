@@ -1,3 +1,6 @@
+using System.Runtime.InteropServices;
+using System.Text;
+
 namespace DashLook.Services;
 
 /// <summary>
@@ -6,6 +9,14 @@ namespace DashLook.Services;
 /// </summary>
 public static class FileExplorerHelper
 {
+    private static readonly HashSet<string> DesktopClasses = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Progman",
+        "WorkerW",
+        "SHELLDLL_DefView",
+        "SysListView32"
+    };
+
     /// <summary>
     /// Returns the path of the item selected in the foreground File Explorer
     /// window, or null if nothing is selected / the window is not Explorer.
@@ -32,7 +43,6 @@ public static class FileExplorerHelper
 
     private static string? GetSelectedPathViaShellAutomation()
     {
-        // Use Shell Automation COM: Shell.Application.Windows()
         Type? shellType = Type.GetTypeFromProgID("Shell.Application");
         if (shellType is null) return null;
 
@@ -41,6 +51,12 @@ public static class FileExplorerHelper
 
         IntPtr foreground = NativeMethods.GetForegroundWindow();
         IntPtr foregroundRoot = NativeMethods.GetAncestor(foreground, 2); // GA_ROOT
+        bool desktopFocused = IsDesktopWindow(foreground) || IsDesktopWindow(foregroundRoot);
+
+        IntPtr desktopShell = NativeMethods.GetShellWindow();
+        IntPtr desktopShellRoot = desktopShell != IntPtr.Zero
+            ? NativeMethods.GetAncestor(desktopShell, 2)
+            : IntPtr.Zero;
 
         for (int i = 0; i < windows.Count; i++)
         {
@@ -51,24 +67,28 @@ public static class FileExplorerHelper
             {
                 IntPtr explorerHwnd = (IntPtr)win.HWND;
                 IntPtr explorerRoot = NativeMethods.GetAncestor(explorerHwnd, 2); // GA_ROOT
-                if (explorerHwnd != foreground && explorerRoot != foregroundRoot) continue;
+
+                bool isForegroundMatch = explorerHwnd == foreground || explorerRoot == foregroundRoot;
+                bool isDesktopMatch = desktopFocused &&
+                                      (explorerHwnd == desktopShell || explorerRoot == desktopShellRoot);
+                if (!isForegroundMatch && !isDesktopMatch) continue;
 
                 dynamic? doc = win.Document;
                 if (doc is null) continue;
 
-                // Try to get the focused item first, fall back to first selected item
                 string? path = null;
                 try { path = (string?)doc.FocusedItem?.Path; }
                 catch { }
 
-                if (path is null)
+                if (string.IsNullOrWhiteSpace(path))
                 {
                     dynamic? selected = doc.SelectedItems();
                     if (selected is not null && selected.Count > 0)
                         path = (string?)selected.Item(0)?.Path;
                 }
 
-                return path;
+                if (!string.IsNullOrWhiteSpace(path))
+                    return path;
             }
             catch
             {
@@ -77,5 +97,14 @@ public static class FileExplorerHelper
         }
 
         return null;
+    }
+
+    private static bool IsDesktopWindow(IntPtr hwnd)
+    {
+        if (hwnd == IntPtr.Zero) return false;
+
+        var className = new StringBuilder(256);
+        NativeMethods.GetClassName(hwnd, className, className.Capacity);
+        return DesktopClasses.Contains(className.ToString());
     }
 }

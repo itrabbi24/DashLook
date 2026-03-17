@@ -53,6 +53,9 @@ internal static class NativeMethods
     [DllImport("user32.dll")]
     public static extern IntPtr GetAncestor(IntPtr hwnd, uint gaFlags);
 
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetShellWindow();
+
     // -- Inter-process messaging -----------------------------------------------
 
     private const int HWND_BROADCAST = 0xFFFF;
@@ -65,3 +68,4 @@ internal static class NativeMethods
     public static void BroadcastDashLookActivate() =>
         PostMessage((IntPtr)HWND_BROADCAST, WM_DASHLOOK_ACTIVATE, IntPtr.Zero, IntPtr.Zero);
 }
+

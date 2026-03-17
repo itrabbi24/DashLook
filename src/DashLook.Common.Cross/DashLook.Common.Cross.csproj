@@ -7,10 +7,11 @@
     <LangVersion>latest</LangVersion>
     <AssemblyName>DashLook.Common.Cross</AssemblyName>
     <RootNamespace>DashLook.Common.Cross</RootNamespace>
-    <Version>1.0.13</Version>
+    <Version>1.0.14</Version>
     <Authors>ARG RABBI</Authors>
     <Description>Cross-platform plugin contracts shared between Windows and Linux builds</Description>
   </PropertyGroup>
 
 </Project>
+
 

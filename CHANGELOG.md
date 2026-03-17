@@ -2,6 +2,11 @@
 
 All notable changes to DashLook will be documented here.
 
+## [1.0.14] - 2026-03-17
+
+### Fixed
+- Desktop file selection now works with Space preview.
+- Added desktop shell window matching fallback for Progman/WorkerW/SHELLDLL_DefView contexts.
 ## [1.0.13] - 2026-03-17
 
 ### Fixed
@@ -27,4 +32,5 @@ All notable changes to DashLook will be documented here.
 - Single-instance enforcement
 - WiX MSI installer
 - GitHub Actions CI/CD pipeline
+
 
