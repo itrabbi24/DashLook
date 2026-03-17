@@ -31,7 +31,7 @@ It sits silently in your system tray and watches what you select in File Explore
 
 ---
 
-## What's New - v1.0.15
+## What's New - v1.0.17
 
 > Released March 2026
 
@@ -273,6 +273,7 @@ Made with care by **[ARG RABBI](https://itrabbi24.github.io/)**
 *If DashLook saves you time, a ⭐ on GitHub means a lot — thank you!*
 
 </div>
+
 
 
 

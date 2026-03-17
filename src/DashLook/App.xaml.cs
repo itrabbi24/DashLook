@@ -225,7 +225,7 @@ public partial class App : Application
         // Blocking inside a WH_KEYBOARD_LL callback causes Windows to drop the hook.
         Dispatcher.BeginInvoke(() =>
         {
-            if (!FileExplorerHelper.TryGetSelectedFilePath(out var filePath)) return;
+            if (!FileExplorerHelper.TryGetSelectedFilePathWithRetry(out var filePath, attempts: 8, delayMs: 35)) return;
             OpenPreview(filePath!);
         });
     }
@@ -266,6 +266,7 @@ public partial class App : Application
         base.OnExit(e);
     }
 }
+
 
 
 

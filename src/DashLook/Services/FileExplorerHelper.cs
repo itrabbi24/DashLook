@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -28,17 +29,18 @@ public static class FileExplorerHelper
         IntPtr foreground = NativeMethods.GetForegroundWindow();
         if (foreground == IntPtr.Zero) return false;
 
+        IntPtr root = NativeMethods.GetAncestor(foreground, 2); // GA_ROOT
+
+        // Process-name based detection is more reliable across Explorer UI variants.
+        if (IsExplorerProcessWindow(foreground) || IsExplorerProcessWindow(root))
+            return true;
+
         if (HasClass(foreground, ExplorerClasses) || HasClass(foreground, DesktopClasses))
             return true;
 
-        IntPtr root = NativeMethods.GetAncestor(foreground, 2); // GA_ROOT
         return HasClass(root, ExplorerClasses) || HasClass(root, DesktopClasses);
     }
 
-    /// <summary>
-    /// Returns the path of the item selected in the foreground File Explorer
-    /// window, or null if nothing is selected / the window is not Explorer.
-    /// </summary>
     public static string? GetSelectedFilePath()
     {
         TryGetSelectedFilePath(out var filePath);
@@ -59,7 +61,7 @@ public static class FileExplorerHelper
         }
     }
 
-    public static bool TryGetSelectedFilePathWithRetry(out string? filePath, int attempts = 4, int delayMs = 30)
+    public static bool TryGetSelectedFilePathWithRetry(out string? filePath, int attempts = 6, int delayMs = 35)
     {
         for (int i = 0; i < attempts; i++)
         {
@@ -127,6 +129,24 @@ public static class FileExplorerHelper
         }
 
         return null;
+    }
+
+    private static bool IsExplorerProcessWindow(IntPtr hwnd)
+    {
+        if (hwnd == IntPtr.Zero) return false;
+
+        try
+        {
+            NativeMethods.GetWindowThreadProcessId(hwnd, out uint pid);
+            if (pid == 0) return false;
+
+            using Process process = Process.GetProcessById((int)pid);
+            return process.ProcessName.Equals("explorer", StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static bool HasClass(IntPtr hwnd, HashSet<string> classes)

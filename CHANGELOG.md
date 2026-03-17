@@ -2,6 +2,12 @@
 
 All notable changes to DashLook will be documented here.
 
+## [1.0.17] - 2026-03-17
+
+### Fixed
+- Improved Space key detection by prioritizing Explorer process context detection.
+- Added selected-file resolution retry window to reduce missed preview opens.
+- Windows build verified with win-x64 publish artifact.
 ## [1.0.15] - 2026-03-17
 
 ### Fixed
@@ -38,6 +44,7 @@ All notable changes to DashLook will be documented here.
 - Single-instance enforcement
 - WiX MSI installer
 - GitHub Actions CI/CD pipeline
+
 
 
 
