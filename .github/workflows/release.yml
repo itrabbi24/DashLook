@@ -4,137 +4,189 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:          # allows manual trigger from GitHub Actions tab
+    inputs:
+      tag:
+        description: 'Tag to release (e.g. v1.0.0)'
+        required: true
 
 permissions:
   contents: write
 
 jobs:
+  # ── Windows build ────────────────────────────────────────────────────────────
   build-windows:
     name: Build Windows
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
 
-      - name: Extract version
+      - name: Get version
         id: ver
+        shell: pwsh
         run: |
-          $v = "${{ github.ref_name }}".TrimStart('v')
+          $tag = if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            "${{ github.event.inputs.tag }}"
+          } else {
+            "${{ github.ref_name }}"
+          }
+          $v = $tag.TrimStart('v')
           echo "version=$v" >> $env:GITHUB_OUTPUT
+          echo "tag=$tag"   >> $env:GITHUB_OUTPUT
+
+      - name: Restore
+        run: dotnet restore src/DashLook/DashLook.csproj
+
+      - name: Publish — single EXE
         shell: pwsh
-
-      - name: Restore & Build
-        run: |
-          dotnet restore src/DashLook/DashLook.csproj
-          dotnet build src/DashLook/DashLook.csproj --configuration Release --no-restore -p:Version=${{ steps.ver.outputs.version }}
-
-      - name: Publish single EXE
         run: |
           dotnet publish src/DashLook/DashLook.csproj `
-            --configuration Release --runtime win-x64 --self-contained true `
-            --output release/win-single `
-            -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained true `
+            --output dist/win `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
             -p:Version=${{ steps.ver.outputs.version }}
 
-      - name: Publish portable
+          # Rename so it's clear in the release
+          Rename-Item dist/win/DashLook.exe "DashLook-${{ steps.ver.outputs.version }}-win-x64.exe"
+
+      - name: Publish — portable ZIP
+        shell: pwsh
         run: |
           dotnet publish src/DashLook/DashLook.csproj `
-            --configuration Release --runtime win-x64 `
-            --output release/win-portable `
+            --configuration Release `
+            --runtime win-x64 `
+            --output dist/win-portable `
             -p:Version=${{ steps.ver.outputs.version }}
-          Compress-Archive -Path release/win-portable/* `
-            -DestinationPath "release/DashLook-${{ steps.ver.outputs.version }}-windows-x64.zip"
-        shell: pwsh
 
-      - uses: actions/upload-artifact@v4
+          Compress-Archive `
+            -Path dist/win-portable/* `
+            -DestinationPath "dist/DashLook-${{ steps.ver.outputs.version }}-windows-x64-portable.zip"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
-          name: windows-release
+          name: windows-artifacts
           path: |
-            release/win-single/DashLook.exe
-            release/DashLook-${{ steps.ver.outputs.version }}-windows-x64.zip
+            dist/win/DashLook-${{ steps.ver.outputs.version }}-win-x64.exe
+            dist/DashLook-${{ steps.ver.outputs.version }}-windows-x64-portable.zip
 
+  # ── Linux build ──────────────────────────────────────────────────────────────
   build-linux:
     name: Build Linux
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
 
-      - name: Extract version
+      - name: Get version
         id: ver
-        run: echo "version=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
-
-      - name: Restore & Build
         run: |
-          dotnet restore src/DashLook.Linux/DashLook.Linux.csproj
-          dotnet build src/DashLook.Linux/DashLook.Linux.csproj --configuration Release --no-restore -p:Version=${{ steps.ver.outputs.version }}
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          else
+            TAG="${{ github.ref_name }}"
+          fi
+          echo "version=${TAG#v}" >> $GITHUB_OUTPUT
 
-      - name: Publish linux-x64
+      - name: Restore
+        run: dotnet restore src/DashLook.Linux/DashLook.Linux.csproj
+
+      - name: Publish — linux-x64
         run: |
           dotnet publish src/DashLook.Linux/DashLook.Linux.csproj \
-            --configuration Release --runtime linux-x64 --self-contained true \
-            --output release/linux-x64 \
+            --configuration Release \
+            --runtime linux-x64 \
+            --self-contained true \
+            --output dist/linux-x64 \
             -p:PublishSingleFile=true \
             -p:Version=${{ steps.ver.outputs.version }}
-          tar -czf release/DashLook-${{ steps.ver.outputs.version }}-linux-x64.tar.gz \
-            -C release/linux-x64 .
 
-      - name: Publish linux-arm64
+          tar -czf "dist/DashLook-${{ steps.ver.outputs.version }}-linux-x64.tar.gz" \
+            -C dist/linux-x64 .
+
+      - name: Publish — linux-arm64
         run: |
           dotnet publish src/DashLook.Linux/DashLook.Linux.csproj \
-            --configuration Release --runtime linux-arm64 --self-contained true \
-            --output release/linux-arm64 \
+            --configuration Release \
+            --runtime linux-arm64 \
+            --self-contained true \
+            --output dist/linux-arm64 \
+            -p:PublishSingleFile=true \
             -p:Version=${{ steps.ver.outputs.version }}
-          tar -czf release/DashLook-${{ steps.ver.outputs.version }}-linux-arm64.tar.gz \
-            -C release/linux-arm64 .
 
-      - uses: actions/upload-artifact@v4
+          tar -czf "dist/DashLook-${{ steps.ver.outputs.version }}-linux-arm64.tar.gz" \
+            -C dist/linux-arm64 .
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
-          name: linux-release
-          path: release/DashLook-*.tar.gz
+          name: linux-artifacts
+          path: dist/DashLook-*.tar.gz
 
+  # ── Publish release ──────────────────────────────────────────────────────────
   publish-release:
-    name: Publish GitHub Release
+    name: Publish Release
     needs: [build-windows, build-linux]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Get version
+        id: ver
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          else
+            TAG="${{ github.ref_name }}"
+          fi
+          echo "version=${TAG#v}" >> $GITHUB_OUTPUT
+          echo "tag=$TAG"         >> $GITHUB_OUTPUT
 
-      - uses: actions/download-artifact@v4
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
         with:
-          name: windows-release
+          name: windows-artifacts
           path: release/
 
-      - uses: actions/download-artifact@v4
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
         with:
-          name: linux-release
+          name: linux-artifacts
           path: release/
 
-      - name: Create Release
+      - name: List release files
+        run: ls -lh release/
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: "DashLook ${{ github.ref_name }}"
-          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: "DashLook ${{ steps.ver.outputs.tag }}"
           make_latest: true
+          prerelease: ${{ contains(steps.ver.outputs.tag, 'beta') || contains(steps.ver.outputs.tag, 'rc') }}
           body: |
-            ## DashLook ${{ github.ref_name }}
+            ## DashLook ${{ steps.ver.outputs.tag }}
 
             > Instant file preview for Windows and Linux
 
             ### Download
 
-            | Platform | File | Notes |
+            | Platform | File | Description |
             |---|---|---|
-            | 🪟 Windows | `DashLook.exe` | Single EXE, just run it |
-            | 🪟 Windows | `DashLook-*-windows-x64.zip` | Portable ZIP |
-            | 🐧 Linux | `DashLook-*-linux-x64.tar.gz` | x64 binary |
-            | 🐧 Linux | `DashLook-*-linux-arm64.tar.gz` | ARM64 (Raspberry Pi etc.) |
+            | 🪟 Windows | `DashLook-*-win-x64.exe` | Single EXE — just run it |
+            | 🪟 Windows | `DashLook-*-windows-x64-portable.zip` | Portable, no install needed |
+            | 🐧 Linux | `DashLook-*-linux-x64.tar.gz` | x64 (Ubuntu, Debian, Fedora…) |
+            | 🐧 Linux | `DashLook-*-linux-arm64.tar.gz` | ARM64 (Raspberry Pi, etc.) |
 
-            ### Linux usage
+            ### Linux quick start
             ```bash
             tar -xzf DashLook-*-linux-x64.tar.gz
             chmod +x DashLook
