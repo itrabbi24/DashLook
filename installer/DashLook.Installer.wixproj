@@ -11,7 +11,4 @@
     <PackageReference Include="WixToolset.Util.wixext" Version="5.*"/>
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Include="Product.wxs"/>
-  </ItemGroup>
 </Project>
