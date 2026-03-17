@@ -1,0 +1,130 @@
+<?xml version="1.0"?>
+<SyntaxDefinition name="Batch" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+  <Color name="Comment"   foreground="#6C7086" fontStyle="italic"/>
+  <Color name="Keyword"   foreground="#CBA6F7" fontWeight="bold"/>
+  <Color name="Command"   foreground="#89B4FA"/>
+  <Color name="Variable"  foreground="#A6E3A1"/>
+  <Color name="Label"     foreground="#F38BA8" fontWeight="bold"/>
+  <Color name="String"    foreground="#A6E3A1"/>
+  <Color name="Operator"  foreground="#FAB387"/>
+
+  <RuleSet ignoreCase="true">
+
+    <!-- Comments: lines starting with REM or :: -->
+    <Rule color="Comment">
+      ^[ \t]*(rem\b.*)
+    </Rule>
+    <Rule color="Comment">
+      ^[ \t]*(::.*$)
+    </Rule>
+
+    <!-- Labels: lines starting with : -->
+    <Rule color="Label">
+      ^[ \t]*:[A-Za-z_][A-Za-z0-9_]*
+    </Rule>
+
+    <!-- Variables: %VAR% and %1 %2 etc and !delayed! -->
+    <Rule color="Variable">
+      %[^%\r\n]+%
+    </Rule>
+    <Rule color="Variable">
+      %[0-9~]
+    </Rule>
+    <Rule color="Variable">
+      ![A-Za-z_][A-Za-z0-9_]*!
+    </Rule>
+
+    <!-- Strings in quotes -->
+    <Span color="String">
+      <Begin>"</Begin>
+      <End>"</End>
+    </Span>
+
+    <!-- Keywords -->
+    <Keywords color="Keyword">
+      <Word>if</Word>
+      <Word>else</Word>
+      <Word>for</Word>
+      <Word>do</Word>
+      <Word>in</Word>
+      <Word>goto</Word>
+      <Word>call</Word>
+      <Word>exit</Word>
+      <Word>not</Word>
+      <Word>defined</Word>
+      <Word>exist</Word>
+      <Word>errorlevel</Word>
+      <Word>equ</Word>
+      <Word>neq</Word>
+      <Word>lss</Word>
+      <Word>leq</Word>
+      <Word>gtr</Word>
+      <Word>geq</Word>
+      <Word>setlocal</Word>
+      <Word>endlocal</Word>
+      <Word>enabledelayedexpansion</Word>
+      <Word>disabledelayedexpansion</Word>
+      <Word>enableextensions</Word>
+    </Keywords>
+
+    <!-- Built-in commands -->
+    <Keywords color="Command">
+      <Word>echo</Word>
+      <Word>set</Word>
+      <Word>pause</Word>
+      <Word>cls</Word>
+      <Word>dir</Word>
+      <Word>copy</Word>
+      <Word>move</Word>
+      <Word>del</Word>
+      <Word>erase</Word>
+      <Word>mkdir</Word>
+      <Word>md</Word>
+      <Word>rmdir</Word>
+      <Word>rd</Word>
+      <Word>ren</Word>
+      <Word>rename</Word>
+      <Word>type</Word>
+      <Word>more</Word>
+      <Word>find</Word>
+      <Word>findstr</Word>
+      <Word>start</Word>
+      <Word>tasklist</Word>
+      <Word>taskkill</Word>
+      <Word>ping</Word>
+      <Word>ipconfig</Word>
+      <Word>netstat</Word>
+      <Word>net</Word>
+      <Word>reg</Word>
+      <Word>sc</Word>
+      <Word>xcopy</Word>
+      <Word>robocopy</Word>
+      <Word>attrib</Word>
+      <Word>cd</Word>
+      <Word>chdir</Word>
+      <Word>pushd</Word>
+      <Word>popd</Word>
+      <Word>path</Word>
+      <Word>where</Word>
+      <Word>wmic</Word>
+      <Word>powershell</Word>
+      <Word>cmd</Word>
+      <Word>timeout</Word>
+      <Word>choice</Word>
+      <Word>color</Word>
+      <Word>title</Word>
+      <Word>date</Word>
+      <Word>time</Word>
+      <Word>ver</Word>
+      <Word>vol</Word>
+      <Word>assoc</Word>
+      <Word>ftype</Word>
+    </Keywords>
+
+    <!-- Operators / redirects -->
+    <Rule color="Operator">
+      [|&amp;&gt;&lt;]
+    </Rule>
+
+  </RuleSet>
+</SyntaxDefinition>

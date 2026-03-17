@@ -12,4 +12,7 @@
     <ProjectReference Include="..\DashLook.Common\DashLook.Common.csproj" />
     <PackageReference Include="AvalonEdit" Version="6.3.0.90" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Highlighting\Batch.xshd"/>
+  </ItemGroup>
 </Project>

@@ -18,7 +18,7 @@ public sealed class TextViewerPlugin : IViewer
         // Code
         ".cs", ".vb", ".fs", ".py", ".js", ".ts", ".jsx", ".tsx",
         ".java", ".kt", ".swift", ".go", ".rs", ".cpp", ".c", ".h",
-        ".hpp", ".rb", ".php", ".lua", ".r", ".m", ".sh", ".bat",
+        ".hpp", ".rb", ".php", ".lua", ".r", ".m", ".sh", ".bat", ".cmd",
         ".ps1", ".psm1", ".psd1",
         // Markup / data
         ".html", ".htm", ".xml", ".xaml", ".json", ".yaml", ".yml",

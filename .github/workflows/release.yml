@@ -82,12 +82,14 @@ jobs:
             -p:Version=${{ steps.ver.outputs.version }}
 
           # Find and copy the MSI to dist/
-          $msi = Get-ChildItem "installer/bin/Release/en-US/" -Filter "*.msi" | Select-Object -First 1
+          # WiX v5 SDK outputs to bin/{Platform}/Release/ (not bin/Release/en-US/)
+          $msi = Get-ChildItem "installer/bin/" -Recurse -Filter "*.msi" | Select-Object -First 1
           if ($msi) {
             Copy-Item $msi.FullName "dist/DashLook-${{ steps.ver.outputs.version }}-Setup.msi"
-            Write-Host "MSI built: $($msi.Name)"
+            Write-Host "MSI built: $($msi.FullName)"
           } else {
-            Write-Error "MSI not found in installer/bin/Release/en-US/"
+            Write-Error "MSI not found under installer/bin/"
+            Get-ChildItem "installer/bin/" -Recurse | ForEach-Object { Write-Host $_.FullName }
             exit 1
           }
 
