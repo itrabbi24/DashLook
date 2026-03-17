@@ -41,7 +41,10 @@ public partial class App : Application
         StartupManager.EnsureFirstRunSetup();
 
         // Plugins
-        string pluginsDir = Path.Combine(AppContext.BaseDirectory, "Plugins");
+        // Use AppData so plugins folder is writable even when installed to Program Files
+        string pluginsDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "DashLook", "Plugins");
         Directory.CreateDirectory(pluginsDir);
         _pluginManager = new PluginManager(pluginsDir);
         _pluginManager.LoadPlugins();

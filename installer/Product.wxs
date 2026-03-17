@@ -25,6 +25,7 @@
     <Icon Id="DashLookIcon" SourceFile="..\assets\DashLook.ico"/>
 
     <!-- ── UI ────────────────────────────────────────────────────────────── -->
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf"/>
     <ui:WixUI Id="WixUI_InstallDir"/>
     <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER"/>
 

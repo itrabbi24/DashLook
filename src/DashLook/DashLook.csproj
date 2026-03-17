@@ -32,9 +32,7 @@
     <!-- Theme XAML files must be included as Resource so pack:// URIs resolve at runtime -->
     <Resource Include="Resources\Themes\Dark.xaml"/>
     <Resource Include="Resources\Themes\Light.xaml"/>
-    <Resource Include="..\..\assets\DashLook.ico">
-      <Link>assets\DashLook.ico</Link>
-    </Resource>
+    <Resource Include="Resources\dashlook_tray.ico"/>
   </ItemGroup>
 
 </Project>

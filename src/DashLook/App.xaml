@@ -13,7 +13,7 @@
 
             <!-- Tray icon defined here so it persists across window open/close -->
             <tb:TaskbarIcon x:Key="TrayIcon"
-                            IconSource="/assets/DashLook.ico"
+                            IconSource="/Resources/dashlook_tray.ico"
                             ToolTipText="DashLook — Press Space to preview files"
                             Visibility="Visible"/>
         </ResourceDictionary>
