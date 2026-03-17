@@ -6,8 +6,7 @@ using System.Text;
 namespace DashLook.Services;
 
 /// <summary>
-/// Detects the active File Explorer window and retrieves the path of
-/// the currently selected file using the Shell Automation Object Model.
+/// Detects File Explorer/Desktop focus and resolves the selected file path.
 /// </summary>
 public static class FileExplorerHelper
 {
@@ -25,20 +24,35 @@ public static class FileExplorerHelper
         "ExploreWClass"
     };
 
-    public static bool IsExplorerContextFocused()
+    public static bool IsExplorerContextFocused() => TryCaptureSelectionContext(out _);
+
+    public static bool TryCaptureSelectionContext(out ExplorerSelectionContext context)
     {
         IntPtr foreground = NativeMethods.GetForegroundWindow();
-        if (foreground == IntPtr.Zero) return false;
+        if (foreground == IntPtr.Zero)
+        {
+            context = default;
+            return false;
+        }
 
-        IntPtr root = NativeMethods.GetAncestor(foreground, 2);
+        IntPtr root = NativeMethods.GetAncestor(foreground, NativeMethods.GA_ROOT);
+        if (root == IntPtr.Zero)
+            root = foreground;
 
-        if (IsExplorerProcessWindow(foreground) || IsExplorerProcessWindow(root))
-            return true;
+        string foregroundClass = GetWindowClassName(foreground);
+        string rootClass = GetWindowClassName(root);
+        bool desktopFocused = DesktopClasses.Contains(foregroundClass) || DesktopClasses.Contains(rootClass);
+        bool explorerFocused = IsExplorerProcessWindow(foreground) || IsExplorerProcessWindow(root)
+            || ExplorerClasses.Contains(foregroundClass) || ExplorerClasses.Contains(rootClass);
 
-        if (HasClass(foreground, ExplorerClasses) || HasClass(foreground, DesktopClasses))
-            return true;
+        if (!desktopFocused && !explorerFocused)
+        {
+            context = default;
+            return false;
+        }
 
-        return HasClass(root, ExplorerClasses) || HasClass(root, DesktopClasses);
+        context = new ExplorerSelectionContext(foreground, root, desktopFocused, foregroundClass, rootClass);
+        return true;
     }
 
     public static string? GetSelectedFilePath()
@@ -49,13 +63,25 @@ public static class FileExplorerHelper
 
     public static bool TryGetSelectedFilePath(out string? filePath)
     {
+        if (!TryCaptureSelectionContext(out var context))
+        {
+            filePath = null;
+            return false;
+        }
+
+        return TryGetSelectedFilePath(context, out filePath);
+    }
+
+    public static bool TryGetSelectedFilePath(ExplorerSelectionContext context, out string? filePath)
+    {
         try
         {
-            filePath = GetSelectedPath();
+            filePath = GetSelectedPath(context);
             return !string.IsNullOrWhiteSpace(filePath);
         }
-        catch
+        catch (Exception ex)
         {
+            LogService.Write($"Selection resolve failed: {ex.Message}");
             filePath = null;
             return false;
         }
@@ -63,33 +89,46 @@ public static class FileExplorerHelper
 
     public static bool TryGetSelectedFilePathWithRetry(out string? filePath, int attempts = 8, int delayMs = 35)
     {
+        if (!TryCaptureSelectionContext(out var context))
+        {
+            filePath = null;
+            return false;
+        }
+
+        return TryGetSelectedFilePathWithRetry(context, out filePath, attempts, delayMs);
+    }
+
+    public static bool TryGetSelectedFilePathWithRetry(ExplorerSelectionContext context, out string? filePath, int attempts = 8, int delayMs = 35)
+    {
         for (int i = 0; i < attempts; i++)
         {
-            if (TryGetSelectedFilePath(out filePath)) return true;
+            if (TryGetSelectedFilePath(context, out filePath))
+                return true;
+
             Thread.Sleep(delayMs);
         }
 
+        LogService.Write($"Selection resolve exhausted retries. {DescribeContext(context)}");
         filePath = null;
         return false;
     }
 
-    private static string? GetSelectedPath()
-    {
-        IntPtr foreground = NativeMethods.GetForegroundWindow();
-        IntPtr foregroundRoot = NativeMethods.GetAncestor(foreground, 2);
-        bool desktopFocused = HasClass(foreground, DesktopClasses) || HasClass(foregroundRoot, DesktopClasses);
+    public static string DescribeContext(ExplorerSelectionContext context)
+        => $"foreground=0x{context.ForegroundWindow.ToInt64():X}({context.ForegroundClassName}), root=0x{context.RootWindow.ToInt64():X}({context.RootClassName}), desktop={context.IsDesktopContext}";
 
-        string? path = GetSelectedPathViaShellAutomation(foreground, foregroundRoot, desktopFocused);
+    private static string? GetSelectedPath(ExplorerSelectionContext context)
+    {
+        string? path = GetSelectedPathViaShellAutomation(context);
         if (!string.IsNullOrWhiteSpace(path))
             return path;
 
-        if (desktopFocused)
+        if (context.IsDesktopContext)
             return GetSelectedDesktopPathViaListView();
 
         return null;
     }
 
-    private static string? GetSelectedPathViaShellAutomation(IntPtr foreground, IntPtr foregroundRoot, bool desktopFocused)
+    private static string? GetSelectedPathViaShellAutomation(ExplorerSelectionContext context)
     {
         Type? shellType = Type.GetTypeFromProgID("Shell.Application");
         if (shellType is null) return null;
@@ -105,28 +144,48 @@ public static class FileExplorerHelper
             try
             {
                 IntPtr explorerHwnd = (IntPtr)win.HWND;
-                IntPtr explorerRoot = NativeMethods.GetAncestor(explorerHwnd, 2);
+                IntPtr explorerRoot = NativeMethods.GetAncestor(explorerHwnd, NativeMethods.GA_ROOT);
+                if (explorerRoot == IntPtr.Zero)
+                    explorerRoot = explorerHwnd;
 
-                bool isForegroundMatch = explorerHwnd == foreground || explorerRoot == foregroundRoot;
-                bool isDesktopCandidate = desktopFocused;
-                if (!isForegroundMatch && !isDesktopCandidate) continue;
+                bool isForegroundMatch = explorerHwnd == context.ForegroundWindow
+                    || explorerHwnd == context.RootWindow
+                    || explorerRoot == context.ForegroundWindow
+                    || explorerRoot == context.RootWindow;
+
+                if (!isForegroundMatch && !context.IsDesktopContext)
+                    continue;
 
                 dynamic? doc = win.Document;
                 if (doc is null) continue;
 
                 string? path = null;
-                try { path = (string?)doc.FocusedItem?.Path; }
-                catch { }
+                try
+                {
+                    path = doc.FocusedItem is not null ? (string?)doc.FocusedItem.Path : null;
+                }
+                catch
+                {
+                }
 
                 if (string.IsNullOrWhiteSpace(path))
                 {
                     dynamic? selected = doc.SelectedItems();
-                    if (selected is not null && selected.Count > 0)
-                        path = (string?)selected.Item(0)?.Path;
+                    try
+                    {
+                        if (selected is not null && selected.Count > 0)
+                            path = (string?)selected.Item(0)?.Path;
+                    }
+                    catch
+                    {
+                    }
                 }
 
                 if (!string.IsNullOrWhiteSpace(path))
+                {
+                    LogService.Write($"Selection resolved via shell automation: {path}");
                     return path;
+                }
             }
             catch
             {
@@ -140,7 +199,8 @@ public static class FileExplorerHelper
     private static string? GetSelectedDesktopPathViaListView()
     {
         IntPtr listView = FindDesktopListView();
-        if (listView == IntPtr.Zero) return null;
+        if (listView == IntPtr.Zero)
+            return null;
 
         int selectedIndex = (int)NativeMethods.SendMessage(
             listView,
@@ -148,21 +208,30 @@ public static class FileExplorerHelper
             new IntPtr(-1),
             new IntPtr(NativeMethods.LVNI_SELECTED));
 
-        if (selectedIndex < 0) return null;
+        if (selectedIndex < 0)
+            return null;
 
         string? itemName = GetListViewItemText(listView, selectedIndex);
-        if (string.IsNullOrWhiteSpace(itemName)) return null;
+        if (string.IsNullOrWhiteSpace(itemName))
+            return null;
 
         string userDesktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
         string userPath = Path.Combine(userDesktop, itemName);
         if (File.Exists(userPath) || Directory.Exists(userPath))
+        {
+            LogService.Write($"Selection resolved via desktop list view: {userPath}");
             return userPath;
+        }
 
         string commonDesktop = Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory);
         string commonPath = Path.Combine(commonDesktop, itemName);
         if (File.Exists(commonPath) || Directory.Exists(commonPath))
+        {
+            LogService.Write($"Selection resolved via common desktop list view: {commonPath}");
             return commonPath;
+        }
 
+        LogService.Write($"Desktop list view returned item name without existing file match: {itemName}");
         return userPath;
     }
 
@@ -183,25 +252,30 @@ public static class FileExplorerHelper
             while ((worker = NativeMethods.FindWindowEx(IntPtr.Zero, worker, "WorkerW", null)) != IntPtr.Zero)
             {
                 defView = FindShellDefView(worker);
-                if (defView != IntPtr.Zero) break;
+                if (defView != IntPtr.Zero)
+                    break;
             }
         }
 
-        if (defView == IntPtr.Zero) return IntPtr.Zero;
+        if (defView == IntPtr.Zero)
+            return IntPtr.Zero;
 
         return NativeMethods.FindWindowEx(defView, IntPtr.Zero, "SysListView32", "FolderView");
     }
 
     private static IntPtr FindShellDefView(IntPtr parent)
     {
-        if (parent == IntPtr.Zero) return IntPtr.Zero;
+        if (parent == IntPtr.Zero)
+            return IntPtr.Zero;
+
         return NativeMethods.FindWindowEx(parent, IntPtr.Zero, "SHELLDLL_DefView", null);
     }
 
     private static string? GetListViewItemText(IntPtr listView, int itemIndex)
     {
         NativeMethods.GetWindowThreadProcessId(listView, out uint processId);
-        if (processId == 0) return null;
+        if (processId == 0)
+            return null;
 
         IntPtr process = NativeMethods.OpenProcess(
             NativeMethods.PROCESS_VM_OPERATION |
@@ -211,7 +285,8 @@ public static class FileExplorerHelper
             false,
             processId);
 
-        if (process == IntPtr.Zero) return null;
+        if (process == IntPtr.Zero)
+            return null;
 
         IntPtr remoteText = IntPtr.Zero;
         IntPtr remoteLvItem = IntPtr.Zero;
@@ -282,12 +357,14 @@ public static class FileExplorerHelper
 
     private static bool IsExplorerProcessWindow(IntPtr hwnd)
     {
-        if (hwnd == IntPtr.Zero) return false;
+        if (hwnd == IntPtr.Zero)
+            return false;
 
         try
         {
             NativeMethods.GetWindowThreadProcessId(hwnd, out uint pid);
-            if (pid == 0) return false;
+            if (pid == 0)
+                return false;
 
             using Process process = Process.GetProcessById((int)pid);
             return process.ProcessName.Equals("explorer", StringComparison.OrdinalIgnoreCase);
@@ -298,14 +375,21 @@ public static class FileExplorerHelper
         }
     }
 
-    private static bool HasClass(IntPtr hwnd, HashSet<string> classes)
+    private static string GetWindowClassName(IntPtr hwnd)
     {
-        if (hwnd == IntPtr.Zero) return false;
+        if (hwnd == IntPtr.Zero)
+            return string.Empty;
 
         var className = new StringBuilder(256);
         NativeMethods.GetClassName(hwnd, className, className.Capacity);
-        return classes.Contains(className.ToString());
+        return className.ToString();
     }
 }
 
+public readonly record struct ExplorerSelectionContext(
+    IntPtr ForegroundWindow,
+    IntPtr RootWindow,
+    bool IsDesktopContext,
+    string ForegroundClassName,
+    string RootClassName);
 

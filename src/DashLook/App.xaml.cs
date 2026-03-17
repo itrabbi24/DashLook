@@ -12,14 +12,12 @@ namespace DashLook;
 
 public partial class App : Application
 {
-    private HotkeyManager?   _hotkeyManager;
-    private PluginManager?   _pluginManager;
-    private UpdateManager?   _updateManager;
-    private PreviewWindow?   _previewWindow;
-    private TaskbarIcon?     _trayIcon;
-    private MenuItem?        _startupMenuItem;
-
-    // -- Startup ---------------------------------------------------------------
+    private HotkeyManager? _hotkeyManager;
+    private PluginManager? _pluginManager;
+    private UpdateManager? _updateManager;
+    private PreviewWindow? _previewWindow;
+    private TaskbarIcon? _trayIcon;
+    private MenuItem? _startupMenuItem;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -83,7 +81,7 @@ public partial class App : Application
         var pluginsItem = new MenuItem { Header = "Find new Plugins..." };
         pluginsItem.Click += (_, _) =>
             Process.Start(new ProcessStartInfo("https://github.com/itrabbi24/DashLook/wiki/Plugins")
-                { UseShellExecute = true });
+            { UseShellExecute = true });
         menu.Items.Add(pluginsItem);
 
         var dataItem = new MenuItem { Header = "Open Data Folder" };
@@ -136,7 +134,7 @@ public partial class App : Application
         menu.Items.Add(quitItem);
 
         _trayIcon!.ContextMenu = menu;
-        _trayIcon.TrayMouseDoubleClick += (_, _) => CheckForUpdatesManual();
+        _trayIcon.TrayMouseDoubleClick += async (_, _) => await CheckForUpdatesManual();
     }
 
     private void AddThemeItem(MenuItem parent, string label, AppTheme theme)
@@ -171,7 +169,8 @@ public partial class App : Application
 
     private async Task CheckForUpdatesManual()
     {
-        if (_updateManager is null) return;
+        if (_updateManager is null)
+            return;
 
         var info = await _updateManager.CheckAsync(silent: false);
         Dispatcher.Invoke(() =>
@@ -197,11 +196,15 @@ public partial class App : Application
 
     private void OnSpacePressed(object? sender, SpacePressedEventArgs e)
     {
-        Dispatcher.BeginInvoke(() =>
+        _ = Dispatcher.BeginInvoke(() =>
         {
-            if (!FileExplorerHelper.TryGetSelectedFilePathWithRetry(out var filePath, attempts: 8, delayMs: 35))
+            if (!FileExplorerHelper.TryGetSelectedFilePathWithRetry(e.Context, out var filePath, attempts: 10, delayMs: 40))
+            {
+                LogService.Write($"Preview open skipped because selection could not be resolved. {FileExplorerHelper.DescribeContext(e.Context)}");
                 return;
+            }
 
+            LogService.Write($"Opening preview for: {filePath}");
             OpenPreview(filePath!);
         });
     }
@@ -215,12 +218,17 @@ public partial class App : Application
                 _previewWindow.ClosePreview();
                 return;
             }
+
             _previewWindow.NavigateTo(filePath);
             return;
         }
 
         var viewer = _pluginManager!.FindViewer(filePath);
-        if (viewer is null) return;
+        if (viewer is null)
+        {
+            LogService.Write($"No viewer found for: {filePath}");
+            return;
+        }
 
         _previewWindow = new PreviewWindow(filePath, viewer, _pluginManager);
         _previewWindow.Show();
@@ -240,3 +248,4 @@ public partial class App : Application
         base.OnExit(e);
     }
 }
+

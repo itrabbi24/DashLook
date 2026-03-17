@@ -1,12 +1,7 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DashLook.Common.Cross", "src\DashLook.Common.Cross\DashLook.Common.Cross.csproj", "{A1B2C3D4-000B-000B-000B-00000000000B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DashLook.Linux", "src\DashLook.Linux\DashLook.Linux.csproj", "{A1B2C3D4-000C-000C-000C-00000000000C}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DashLook", "src\DashLook\DashLook.csproj", "{A1B2C3D4-0001-0001-0001-000000000001}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DashLook.Common", "src\DashLook.Common\DashLook.Common.csproj", "{A1B2C3D4-0002-0002-0002-000000000002}"
@@ -92,3 +87,4 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal
+

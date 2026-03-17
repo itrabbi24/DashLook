@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - 'v*.*.*'
-  workflow_dispatch:          # allows manual trigger from GitHub Actions tab
+  workflow_dispatch:
     inputs:
       tag:
         description: 'Tag to release (e.g. v1.0.0)'
@@ -17,7 +17,6 @@ permissions:
   contents: write
 
 jobs:
-  # ── Windows build ────────────────────────────────────────────────────────────
   build-windows:
     name: Build Windows
     runs-on: windows-latest
@@ -39,12 +38,12 @@ jobs:
           }
           $v = $tag.TrimStart('v')
           echo "version=$v" >> $env:GITHUB_OUTPUT
-          echo "tag=$tag"   >> $env:GITHUB_OUTPUT
+          echo "tag=$tag" >> $env:GITHUB_OUTPUT
 
       - name: Restore
         run: dotnet restore src/DashLook/DashLook.csproj
 
-      - name: Publish — single EXE + installer source
+      - name: Publish single EXE + installer source
         shell: pwsh
         run: |
           dotnet publish src/DashLook/DashLook.csproj `
@@ -56,11 +55,10 @@ jobs:
             -p:IncludeNativeLibrariesForSelfExtract=true `
             -p:Version=${{ steps.ver.outputs.version }}
 
-          # Copy for standalone EXE release before the installer uses it
           Copy-Item dist/win-setup/DashLook.exe `
             "dist/DashLook-${{ steps.ver.outputs.version }}-win-x64.exe"
 
-      - name: Publish — portable ZIP
+      - name: Publish portable ZIP
         shell: pwsh
         run: |
           dotnet publish src/DashLook/DashLook.csproj `
@@ -76,25 +74,27 @@ jobs:
       - name: Install Inno Setup
         run: choco install innosetup --no-progress -y
 
-      - name: Build Setup installer (Inno Setup)
+      - name: Build Setup installer
         shell: pwsh
         run: |
-          # Locate ISCC — choco may install to different paths
           $candidates = @(
             "C:\Program Files (x86)\Inno Setup 6\ISCC.exe",
             "C:\Program Files\Inno Setup 6\ISCC.exe",
             (Get-Command ISCC -ErrorAction SilentlyContinue)?.Source
           ) | Where-Object { $_ -and (Test-Path $_) }
+
           if (-not $candidates) {
             Write-Host "Available Inno Setup dirs:"
             Get-ChildItem "C:\Program Files (x86)", "C:\Program Files" -Directory -ErrorAction SilentlyContinue |
               Where-Object Name -like "*Inno*" | ForEach-Object { Write-Host "  $($_.FullName)" }
             exit 1
           }
+
           $iscc = $candidates[0]
           Write-Host "ISCC: $iscc"
           & $iscc installer/DashLook.iss /DAppVersion=${{ steps.ver.outputs.version }} "/DPublishDir=..\dist\win-setup"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
           Copy-Item "installer/bin/Release/DashLook-${{ steps.ver.outputs.version }}-Setup.exe" "dist/DashLook-${{ steps.ver.outputs.version }}-Setup.exe"
 
       - name: Upload artifacts
@@ -106,66 +106,9 @@ jobs:
             dist/DashLook-${{ steps.ver.outputs.version }}-windows-x64-portable.zip
             dist/DashLook-${{ steps.ver.outputs.version }}-Setup.exe
 
-  # ── Linux build ──────────────────────────────────────────────────────────────
-  build-linux:
-    name: Build Linux
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '9.0.x'
-
-      - name: Get version
-        id: ver
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TAG="${{ github.event.inputs.tag }}"
-          else
-            TAG="${{ github.ref_name }}"
-          fi
-          echo "version=${TAG#v}" >> $GITHUB_OUTPUT
-
-      - name: Restore
-        run: dotnet restore src/DashLook.Linux/DashLook.Linux.csproj
-
-      - name: Publish — linux-x64
-        run: |
-          dotnet publish src/DashLook.Linux/DashLook.Linux.csproj \
-            --configuration Release \
-            --runtime linux-x64 \
-            --self-contained true \
-            --output dist/linux-x64 \
-            -p:PublishSingleFile=true \
-            -p:Version=${{ steps.ver.outputs.version }}
-
-          tar -czf "dist/DashLook-${{ steps.ver.outputs.version }}-linux-x64.tar.gz" \
-            -C dist/linux-x64 .
-
-      - name: Publish — linux-arm64
-        run: |
-          dotnet publish src/DashLook.Linux/DashLook.Linux.csproj \
-            --configuration Release \
-            --runtime linux-arm64 \
-            --self-contained true \
-            --output dist/linux-arm64 \
-            -p:PublishSingleFile=true \
-            -p:Version=${{ steps.ver.outputs.version }}
-
-          tar -czf "dist/DashLook-${{ steps.ver.outputs.version }}-linux-arm64.tar.gz" \
-            -C dist/linux-arm64 .
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-artifacts
-          path: dist/DashLook-*.tar.gz
-
-  # ── Publish release ──────────────────────────────────────────────────────────
   publish-release:
     name: Publish Release
-    needs: [build-windows, build-linux]
+    needs: [build-windows]
     runs-on: ubuntu-latest
     steps:
       - name: Get version
@@ -177,18 +120,12 @@ jobs:
             TAG="${{ github.ref_name }}"
           fi
           echo "version=${TAG#v}" >> $GITHUB_OUTPUT
-          echo "tag=$TAG"         >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
       - name: Download Windows artifacts
         uses: actions/download-artifact@v4
         with:
           name: windows-artifacts
-          path: release/
-
-      - name: Download Linux artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: linux-artifacts
           path: release/
 
       - name: List release files
@@ -204,30 +141,17 @@ jobs:
           body: |
             ## DashLook ${{ steps.ver.outputs.tag }}
 
-            > Instant file preview for Windows and Linux — press `Space` to preview any file
+            Windows-first instant file preview. Select a file in Explorer or on the desktop, then press `Space`.
 
-            ### Download
+            ### Downloads
+            - `DashLook-*-Setup.exe`: installer with Start Menu entry and startup integration
+            - `DashLook-*-win-x64.exe`: single-file portable executable
+            - `DashLook-*-windows-x64-portable.zip`: portable folder build
 
-            | Platform | File | Description |
-            |---|---|---|
-            | 🪟 Windows | `DashLook-*-Setup.exe` | Installer — recommended, adds to Start Menu & auto-start |
-            | 🪟 Windows | `DashLook-*-win-x64.exe` | Single EXE — just run it, no install needed |
-            | 🪟 Windows | `DashLook-*-windows-x64-portable.zip` | Portable ZIP — carry on USB, no install |
-            | 🐧 Linux | `DashLook-*-linux-x64.tar.gz` | x64 (Ubuntu, Debian, Fedora…) |
-            | 🐧 Linux | `DashLook-*-linux-arm64.tar.gz` | ARM64 (Raspberry Pi, etc.) |
+            ### What's improved
+            - stronger Explorer/Desktop selection detection for `Space`
+            - Windows-only release pipeline
+            - refreshed project branding assets
 
-            ### Windows quick start
-            - **Installer (recommended):** run `DashLook-*-Setup.exe`, follow the wizard — DashLook starts automatically
-            - **Portable:** extract the ZIP or run the EXE directly — no install required
-            - Select any file in Explorer → press **`Space`** → instant preview
-
-            ### Linux quick start
-            ```bash
-            tar -xzf DashLook-*-linux-x64.tar.gz
-            chmod +x DashLook
-            ./DashLook /path/to/file.png
-            ```
-
-            ---
             Built by [ARG RABBI](https://itrabbi24.github.io/)
           files: release/*

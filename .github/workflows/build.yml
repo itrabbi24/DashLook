@@ -15,6 +15,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
@@ -26,40 +27,15 @@ jobs:
         run: dotnet build src/DashLook/DashLook.csproj --configuration Release --no-restore
 
       - name: Publish (portable)
+        shell: pwsh
         run: |
           dotnet publish src/DashLook/DashLook.csproj `
-            --configuration Release --runtime win-x64 `
+            --configuration Release `
+            --runtime win-x64 `
             --output publish/DashLook-windows
 
       - uses: actions/upload-artifact@v4
         with:
           name: DashLook-Windows-${{ github.sha }}
           path: publish/DashLook-windows/
-          retention-days: 7
-
-  build-linux:
-    name: Linux (Avalonia)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '9.0.x'
-
-      - name: Restore
-        run: dotnet restore src/DashLook.Linux/DashLook.Linux.csproj
-
-      - name: Build
-        run: dotnet build src/DashLook.Linux/DashLook.Linux.csproj --configuration Release --no-restore
-
-      - name: Publish (portable)
-        run: |
-          dotnet publish src/DashLook.Linux/DashLook.Linux.csproj \
-            --configuration Release --runtime linux-x64 \
-            --output publish/DashLook-linux
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: DashLook-Linux-${{ github.sha }}
-          path: publish/DashLook-linux/
           retention-days: 7

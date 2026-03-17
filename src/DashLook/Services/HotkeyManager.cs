@@ -1,10 +1,12 @@
+using System;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace DashLook.Services;
 
 /// <summary>
 /// Installs a low-level keyboard hook (WH_KEYBOARD_LL) to intercept the
-/// Space key globally so DashLook can trigger previews from any window.
+/// Space key globally so DashLook can trigger previews from supported shell windows.
 /// </summary>
 public sealed class HotkeyManager : IDisposable
 {
@@ -13,6 +15,7 @@ public sealed class HotkeyManager : IDisposable
     private const int WH_KEYBOARD_LL = 13;
     private const int WM_KEYDOWN = 0x0100;
     private const int VK_SPACE = 0x20;
+    private const int SpaceHandledTimeoutMs = 700;
 
     private IntPtr _hookHandle = IntPtr.Zero;
     private NativeMethods.LowLevelKeyboardProc? _hookProc;
@@ -43,13 +46,13 @@ public sealed class HotkeyManager : IDisposable
 
     private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
     {
-        if (nCode >= 0 && wParam == WM_KEYDOWN)
+        if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN)
         {
             var kbs = Marshal.PtrToStructure<NativeMethods.KBDLLHOOKSTRUCT>(lParam);
-            if (kbs.vkCode == VK_SPACE && FileExplorerHelper.IsExplorerContextFocused())
+            if (kbs.vkCode == VK_SPACE && FileExplorerHelper.TryCaptureSelectionContext(out var context))
             {
-                LogService.Write("Space detected in Explorer context.");
-                SpacePressed?.Invoke(this, SpacePressedEventArgs.Instance);
+                LogService.Write($"Space detected. {FileExplorerHelper.DescribeContext(context)}");
+                SpacePressed?.Invoke(this, new SpacePressedEventArgs(context));
                 return (IntPtr)1;
             }
         }
@@ -62,5 +65,10 @@ public sealed class HotkeyManager : IDisposable
 
 public sealed class SpacePressedEventArgs : EventArgs
 {
-    public static SpacePressedEventArgs Instance { get; } = new();
+    public SpacePressedEventArgs(ExplorerSelectionContext context)
+    {
+        Context = context;
+    }
+
+    public ExplorerSelectionContext Context { get; }
 }

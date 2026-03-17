@@ -23,6 +23,7 @@ internal static class NativeMethods
     public const int LVM_GETITEMTEXTW = LVM_FIRST + 115;
     public const int LVNI_SELECTED = 0x0002;
     public const uint LVIF_TEXT = 0x0001;
+    public const uint GA_ROOT = 2;
 
     public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
 
@@ -129,3 +130,5 @@ internal static class NativeMethods
     public static void BroadcastDashLookActivate() =>
         PostMessage((IntPtr)HWND_BROADCAST, WM_DASHLOOK_ACTIVATE, IntPtr.Zero, IntPtr.Zero);
 }
+
+
