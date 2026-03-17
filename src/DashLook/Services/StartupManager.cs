@@ -1,5 +1,5 @@
 using Microsoft.Win32;
-using System.Reflection;
+using System.IO;
 
 namespace DashLook.Services;
 
@@ -23,8 +23,8 @@ public static class StartupManager
     /// <summary>Register DashLook to auto-start on Windows login.</summary>
     public static void EnableStartup()
     {
-        string exePath = Assembly.GetExecutingAssembly().Location
-            .Replace(".dll", ".exe"); // handles .NET single-file publish
+        string exePath = Path.Combine(AppContext.BaseDirectory,
+            AppDomain.CurrentDomain.FriendlyName + ".exe");
 
         using var key = Registry.CurrentUser.OpenSubKey(RunKey, writable: true)
                      ?? throw new InvalidOperationException("Cannot open Run registry key.");

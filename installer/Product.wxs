@@ -22,6 +22,8 @@
 
     <MediaTemplate EmbedCab="yes"/>
 
+    <Icon Id="DashLookIcon" SourceFile="..\assets\DashLook.ico"/>
+
     <!-- ── UI ────────────────────────────────────────────────────────────── -->
     <ui:WixUI Id="WixUI_InstallDir"/>
     <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER"/>
@@ -35,7 +37,6 @@
     <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1"/>
 
     <!-- ── Launch app after install ──────────────────────────────────────── -->
-    <!-- SetProperty resolves [INSTALLFOLDER] at install time, then WixShellExec launches it -->
     <SetProperty Id="WixShellExecTarget"
                  Value="[INSTALLFOLDER]DashLook.exe"
                  Before="LaunchAppOnExit"
@@ -66,18 +67,25 @@
     <StandardDirectory Id="DesktopFolder"/>
 
     <!-- ── Main executable ───────────────────────────────────────────────── -->
+    <!-- ICE57 fix: split per-machine (file) and per-user (registry) into separate components -->
     <ComponentGroup Id="MainApp" Directory="INSTALLFOLDER">
+
       <Component Id="DashLookExe" Guid="A1B2C3D4-1111-1111-1111-111111111111">
         <File Id="DashLookExeFile"
               Source="$(var.PublishDir)\DashLook.exe"
               KeyPath="yes"/>
-        <!-- Auto-start on Windows login -->
+      </Component>
+
+      <Component Id="StartupRegistry" Guid="A1B2C3D4-2222-1111-1111-111111111111">
         <RegistryValue Root="HKCU"
                        Key="Software\Microsoft\Windows\CurrentVersion\Run"
                        Name="DashLook"
                        Value="[INSTALLFOLDER]DashLook.exe"
-                       Type="string"/>
-        <!-- Developer info -->
+                       Type="string"
+                       KeyPath="yes"/>
+      </Component>
+
+      <Component Id="DevInfo" Guid="A1B2C3D4-3333-1111-1111-111111111111">
         <RegistryValue Root="HKCU"
                        Key="Software\DashLook"
                        Name="Developer"
@@ -87,22 +95,23 @@
                        Key="Software\DashLook"
                        Name="Version"
                        Value="$(var.AppVersion)"
-                       Type="string"/>
+                       Type="string"
+                       KeyPath="yes"/>
       </Component>
+
     </ComponentGroup>
 
-    <!-- ── Start menu shortcuts ───────────────────────────────────────────── -->
+    <!-- ── Start menu shortcut ────────────────────────────────────────────── -->
+    <!-- ICE03 fix: removed URL shortcut — URLs are not valid MSI shortcut targets -->
     <ComponentGroup Id="Shortcuts" Directory="ApplicationProgramsFolder">
       <Component Id="StartMenuShortcut" Guid="C3D4E5F6-3333-3333-3333-333333333333">
         <Shortcut Id="StartMenuShortcutDashLook"
                   Name="DashLook"
                   Description="Instant file preview — by ARG RABBI"
                   Target="[INSTALLFOLDER]DashLook.exe"
-                  WorkingDirectory="INSTALLFOLDER"/>
-        <Shortcut Id="StartMenuShortcutWebsite"
-                  Name="DashLook — Developer Website"
-                  Description="Visit ARG RABBI's developer profile"
-                  Target="https://itrabbi24.github.io/"/>
+                  WorkingDirectory="INSTALLFOLDER"
+                  Icon="DashLookIcon"
+                  IconIndex="0"/>
         <RemoveFolder Id="RemoveStartMenu" On="uninstall"/>
         <RegistryValue Root="HKCU"
                        Key="Software\DashLook"
@@ -120,7 +129,9 @@
                   Name="DashLook"
                   Description="Instant file preview for Windows"
                   Target="[INSTALLFOLDER]DashLook.exe"
-                  WorkingDirectory="INSTALLFOLDER"/>
+                  WorkingDirectory="INSTALLFOLDER"
+                  Icon="DashLookIcon"
+                  IconIndex="0"/>
         <RegistryValue Root="HKCU"
                        Key="Software\DashLook"
                        Name="DesktopShortcut"

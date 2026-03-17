@@ -37,8 +37,7 @@ public partial class App : Application
         StartupManager.EnsureFirstRunSetup();
 
         // Plugins
-        string pluginsDir = Path.Combine(
-            Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "Plugins");
+        string pluginsDir = Path.Combine(AppContext.BaseDirectory, "Plugins");
         Directory.CreateDirectory(pluginsDir);
         _pluginManager = new PluginManager(pluginsDir);
         _pluginManager.LoadPlugins();
@@ -127,7 +126,8 @@ public partial class App : Application
         var restartItem = new MenuItem { Header = "Restart" };
         restartItem.Click += (_, _) =>
         {
-            string exe = Assembly.GetExecutingAssembly().Location.Replace(".dll", ".exe");
+            string exe = Path.Combine(AppContext.BaseDirectory,
+                AppDomain.CurrentDomain.FriendlyName + ".exe");
             Process.Start(new ProcessStartInfo(exe) { UseShellExecute = true });
             ExitApp();
         };
