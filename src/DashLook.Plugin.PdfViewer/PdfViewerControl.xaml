@@ -5,6 +5,6 @@
              Background="#181825">
     <Grid>
         <wv2:WebView2 x:Name="WebView"
-                      DefaultBackgroundColor="System.Drawing.Color.Transparent"/>
+                      />
     </Grid>
 </UserControl>

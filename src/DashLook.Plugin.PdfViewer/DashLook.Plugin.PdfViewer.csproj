@@ -2,13 +2,14 @@
   <PropertyGroup>
     <TargetFramework>net9.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
     <UseWPF>true</UseWPF>
     <AssemblyName>DashLook.Plugin.PdfViewer</AssemblyName>
     <RootNamespace>DashLook.Plugin.PdfViewer</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\DashLook.Common\DashLook.Common.csproj" />
-    <!-- PDF rendered via WebView2 using PDF.js or native browser PDF support -->
+    <ProjectReference Include="..\DashLook.Common\DashLook.Common.csproj" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2792.45" />
   </ItemGroup>
 </Project>

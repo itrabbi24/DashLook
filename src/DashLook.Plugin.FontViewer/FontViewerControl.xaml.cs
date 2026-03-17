@@ -16,7 +16,12 @@ public partial class FontViewerControl : UserControl
         {
             // Load the font from file using WPF's font URI scheme
             var fontUri = new Uri($"file:///{fontPath.Replace('\\', '/')}");
-            string fontFamily = new System.Windows.Media.GlyphTypeface(fontUri).Win32FamilyName;
+            var glyphTypeface = new System.Windows.Media.GlyphTypeface(fontUri);
+            // FamilyNames is a dictionary of CultureInfo → name; pick English (1033) or first available
+            string fontFamily = glyphTypeface.FamilyNames.TryGetValue(
+                System.Globalization.CultureInfo.GetCultureInfo(1033), out var name)
+                ? name
+                : glyphTypeface.FamilyNames.Values.FirstOrDefault() ?? Path.GetFileNameWithoutExtension(fontPath);
 
             var family = new FontFamily($"file:///{Path.GetDirectoryName(fontPath)?.Replace('\\', '/')}/" +
                                         $"#{fontFamily}");

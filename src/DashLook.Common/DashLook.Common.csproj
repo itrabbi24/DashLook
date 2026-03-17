@@ -3,13 +3,14 @@
   <PropertyGroup>
     <TargetFramework>net9.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
+    <UseWPF>true</UseWPF>
     <AssemblyName>DashLook.Common</AssemblyName>
     <RootNamespace>DashLook.Common</RootNamespace>
     <Version>1.0.0</Version>
-    <Authors>DashLook Contributors</Authors>
+    <Authors>ARG RABBI</Authors>
     <Description>Shared interfaces and utilities for DashLook plugins</Description>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
 </Project>

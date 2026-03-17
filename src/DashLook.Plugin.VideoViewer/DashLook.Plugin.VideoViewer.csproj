@@ -2,12 +2,14 @@
   <PropertyGroup>
     <TargetFramework>net9.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
     <UseWPF>true</UseWPF>
     <AssemblyName>DashLook.Plugin.VideoViewer</AssemblyName>
     <RootNamespace>DashLook.Plugin.VideoViewer</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\DashLook.Common\DashLook.Common.csproj" />
+    <ProjectReference Include="..\DashLook.Common\DashLook.Common.csproj" />
     <PackageReference Include="LibVLCSharp.WPF" Version="3.9.0" />
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
   </ItemGroup>

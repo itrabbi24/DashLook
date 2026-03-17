@@ -45,7 +45,7 @@ public class ContextObject
 
     // ── Raw path (read-only) ─────────────────────────────────────────────────
 
-    public string FilePath { get; internal set; } = string.Empty;
+    public string FilePath { get; set; } = string.Empty;
 
     /// <summary>Helper: format bytes as KB / MB / GB string.</summary>
     public static string FormatFileSize(long bytes)

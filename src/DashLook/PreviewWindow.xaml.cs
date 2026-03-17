@@ -67,12 +67,10 @@ public partial class PreviewWindow : Window
         TitleText.Text = fileName;
         FileTypeIcon.Text = FileIcons.TryGetValue(ext, out var icon) ? icon : "📄";
 
-        var context = new ContextObject
-        {
-            FilePath = filePath,
-            OnReady  = () => Dispatcher.Invoke(() => ShowViewer(viewer, context)),
-            OnError  = (msg) => Dispatcher.Invoke(() => ShowError(msg)),
-        };
+        var context = new ContextObject();
+        context.FilePath = filePath;
+        context.OnReady  = () => Dispatcher.Invoke(() => ShowViewer(viewer, context));
+        context.OnError  = (msg) => Dispatcher.Invoke(() => ShowError(msg));
 
         // Get file size
         try

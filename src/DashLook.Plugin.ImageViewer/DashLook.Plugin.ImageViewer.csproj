@@ -2,11 +2,13 @@
   <PropertyGroup>
     <TargetFramework>net9.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
     <UseWPF>true</UseWPF>
     <AssemblyName>DashLook.Plugin.ImageViewer</AssemblyName>
     <RootNamespace>DashLook.Plugin.ImageViewer</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\DashLook.Common\DashLook.Common.csproj" />
+    <ProjectReference Include="..\DashLook.Common\DashLook.Common.csproj" />
   </ItemGroup>
 </Project>
