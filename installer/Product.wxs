@@ -48,11 +48,27 @@
                   Impersonate="yes"
                   Return="ignore"/>
 
+    <!-- ── Open developer website if checkbox ticked on finish dialog ─────── -->
+    <!-- explorer.exe handles URLs natively — opens in default browser -->
+    <Property Id="OPEN_URL_EXE" Value="[WindowsFolder]explorer.exe"/>
+    <CustomAction Id="OpenDevWebsite"
+                  Property="OPEN_URL_EXE"
+                  ExeCommand="https://itrabbi24.github.io/"
+                  Execute="immediate"
+                  Impersonate="yes"
+                  Return="ignore"/>
+
     <InstallExecuteSequence>
       <Custom Action="LaunchAppOnExit"
               After="InstallFinalize"
               Condition="NOT Installed AND NOT REMOVE"/>
     </InstallExecuteSequence>
+
+    <InstallUISequence>
+      <Custom Action="OpenDevWebsite"
+              After="ExecuteAction"
+              Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed AND NOT REMOVE"/>
+    </InstallUISequence>
 
     <!-- ── Install directory ──────────────────────────────────────────────── -->
     <StandardDirectory Id="ProgramFiles6432Folder">
