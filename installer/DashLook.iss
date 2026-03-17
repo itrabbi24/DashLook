@@ -12,10 +12,10 @@
 #define MyAppPublisher "ARG RABBI"
 #define MyAppURL       "https://itrabbi24.github.io/"
 #define MyAppExe       "DashLook.exe"
-#define MyAppGUID      "{DCA7F3B1-4E2A-4F3D-9B1C-8E2D7A4B5C6F}"
 
 [Setup]
-AppId={#MyAppGUID}
+; {{  = escaped literal {  — required so Inno Setup doesn't treat the GUID as a constant
+AppId={{DCA7F3B1-4E2A-4F3D-9B1C-8E2D7A4B5C6F}
 AppName={#MyAppName}
 AppVersion={#AppVersion}
 AppVerName={#MyAppName} {#AppVersion}
@@ -32,13 +32,12 @@ SetupIconFile=..\assets\DashLook.ico
 UninstallDisplayIcon={app}\{#MyAppExe}
 UninstallDisplayName={#MyAppName}
 WizardStyle=modern
-WizardResizable=yes
 Compression=lzma2/ultra64
 SolidCompression=yes
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0
-WizardImageFile=compiler:WizModernImage.bmp
-WizardSmallImageFile=compiler:WizModernSmallImage.bmp
+; Per-user install — no UAC prompt, HKCU registry access is clean
+PrivilegesRequired=lowest
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

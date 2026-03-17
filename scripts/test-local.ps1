@@ -34,9 +34,12 @@ Step "Publish Windows single-file for installer" {
 }
 
 Step "Build Inno Setup installer" {
-    $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-    if (-not (Test-Path $iscc)) {
-        Write-Host "Inno Setup not installed locally - skipping installer build (CI will build it)" -ForegroundColor Yellow
+    $iscc = @(
+        "C:\Program Files (x86)\Inno Setup 6\ISCC.exe",
+        "C:\Program Files\Inno Setup 6\ISCC.exe"
+    ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+    if (-not $iscc) {
+        Write-Host "Inno Setup not installed - skipping (CI will build it)" -ForegroundColor Yellow
         $global:LASTEXITCODE = 0
         return
     }
