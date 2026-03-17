@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>DashLook.Common.Cross</AssemblyName>
+    <RootNamespace>DashLook.Common.Cross</RootNamespace>
+    <Version>1.0.0</Version>
+    <Authors>ARG RABBI</Authors>
+    <Description>Cross-platform plugin contracts shared between Windows and Linux builds</Description>
+  </PropertyGroup>
+
+</Project>

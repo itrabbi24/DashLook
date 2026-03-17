@@ -7,38 +7,56 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-    name: Build DashLook
+  build-windows:
+    name: Windows (WPF)
     runs-on: windows-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup .NET 9
-        uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
 
-      - name: Restore NuGet packages
-        run: dotnet restore DashLook.sln
+      - name: Restore
+        run: dotnet restore src/DashLook/DashLook.csproj
 
-      - name: Build (Release)
-        run: dotnet build DashLook.sln --configuration Release --no-restore
+      - name: Build
+        run: dotnet build src/DashLook/DashLook.csproj --configuration Release --no-restore
 
-      - name: Publish main app
+      - name: Publish (portable)
         run: |
           dotnet publish src/DashLook/DashLook.csproj `
-            --configuration Release `
-            --runtime win-x64 `
-            --self-contained true `
-            --output publish/DashLook `
-            -p:PublishSingleFile=true `
-            -p:IncludeNativeLibrariesForSelfExtract=true
+            --configuration Release --runtime win-x64 `
+            --output publish/DashLook-windows
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: DashLook-${{ github.sha }}
-          path: publish/
+          name: DashLook-Windows-${{ github.sha }}
+          path: publish/DashLook-windows/
+          retention-days: 7
+
+  build-linux:
+    name: Linux (Avalonia)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore
+        run: dotnet restore src/DashLook.Linux/DashLook.Linux.csproj
+
+      - name: Build
+        run: dotnet build src/DashLook.Linux/DashLook.Linux.csproj --configuration Release --no-restore
+
+      - name: Publish (portable)
+        run: |
+          dotnet publish src/DashLook.Linux/DashLook.Linux.csproj \
+            --configuration Release --runtime linux-x64 \
+            --output publish/DashLook-linux
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DashLook-Linux-${{ github.sha }}
+          path: publish/DashLook-linux/
           retention-days: 7

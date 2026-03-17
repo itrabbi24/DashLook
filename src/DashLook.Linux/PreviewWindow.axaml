@@ -1,0 +1,98 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="DashLook.Linux.PreviewWindow"
+        Title="DashLook"
+        Width="960" Height="660"
+        MinWidth="400" MinHeight="300"
+        WindowStartupLocation="CenterScreen"
+        Background="#1E1E2E"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        TransparencyLevelHint="AcrylicBlur">
+
+    <Grid RowDefinitions="44,*,30">
+
+        <!-- Title bar -->
+        <Grid Grid.Row="0"
+              Background="#1E1E2E"
+              PointerPressed="TitleBar_PointerPressed">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="44"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock x:Name="FileTypeIcon" Grid.Column="0"
+                       Text="📄" FontSize="20"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+            <TextBlock x:Name="TitleText" Grid.Column="1"
+                       Text="DashLook"
+                       Foreground="#CDD6F4" FontSize="13" FontWeight="SemiBold"
+                       VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis"/>
+
+            <StackPanel Grid.Column="2" Orientation="Horizontal"
+                        VerticalAlignment="Center" Margin="0,0,8,0" Spacing="4">
+                <Button x:Name="PinBtn" Content="📌"
+                        Background="Transparent" Foreground="#A6ADC8"
+                        BorderThickness="0" Width="32" Height="32"
+                        ToolTip.Tip="Pin on top"
+                        Click="Pin_Click"/>
+                <Button x:Name="OpenBtn" Content="↗"
+                        Background="Transparent" Foreground="#A6ADC8"
+                        BorderThickness="0" Width="32" Height="32"
+                        ToolTip.Tip="Open with default app"
+                        Click="OpenExternal_Click"/>
+                <Button x:Name="CloseBtn" Content="✕"
+                        Background="Transparent" Foreground="#A6ADC8"
+                        BorderThickness="0" Width="32" Height="32"
+                        ToolTip.Tip="Close (Esc)"
+                        Click="Close_Click"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Content -->
+        <Border Grid.Row="1" Background="#181825" x:Name="ContentArea">
+            <Grid>
+                <ContentControl x:Name="ViewerHost"/>
+
+                <StackPanel x:Name="LoadingOverlay"
+                            HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="⟳" FontSize="48" Foreground="#CBA6F7"
+                               HorizontalAlignment="Center"
+                               x:Name="SpinnerText"/>
+                    <TextBlock Text="Loading…" FontSize="13" Foreground="#A6ADC8"
+                               HorizontalAlignment="Center" Margin="0,12,0,0"/>
+                </StackPanel>
+
+                <StackPanel x:Name="ErrorOverlay" IsVisible="False"
+                            HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="⚠" FontSize="48" Foreground="#E86343"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="ErrorText" FontSize="13" Foreground="#A6ADC8"
+                               HorizontalAlignment="Center" Margin="0,12,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Status bar -->
+        <Border Grid.Row="2" Background="#13131F">
+            <Grid Margin="12,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="FileTypeText" Grid.Column="0"
+                           Foreground="#A6ADC8" FontSize="11" VerticalAlignment="Center"/>
+                <TextBlock x:Name="FileSizeText" Grid.Column="1"
+                           Foreground="#A6ADC8" FontSize="11" VerticalAlignment="Center"
+                           Margin="0,0,16,0"/>
+                <TextBlock Grid.Column="2"
+                           Text="[Esc] Close  [Enter] Open"
+                           Foreground="#585B70" FontSize="10" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

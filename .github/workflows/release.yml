@@ -9,73 +9,137 @@ permissions:
   contents: write
 
 jobs:
-  release:
-    name: Build & Publish Release
+  build-windows:
+    name: Build Windows
     runs-on: windows-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Extract version from tag
-        id: version
-        run: |
-          $tag = "${{ github.ref_name }}"
-          $version = $tag.TrimStart('v')
-          echo "version=$version" >> $env:GITHUB_OUTPUT
-        shell: pwsh
-
-      - name: Setup .NET 9
-        uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
 
-      - name: Restore & Build
+      - name: Extract version
+        id: ver
         run: |
-          dotnet restore DashLook.sln
-          dotnet build DashLook.sln --configuration Release --no-restore `
-            -p:Version=${{ steps.version.outputs.version }}
-
-      - name: Publish x64 (single-file)
-        run: |
-          dotnet publish src/DashLook/DashLook.csproj `
-            --configuration Release `
-            --runtime win-x64 `
-            --self-contained true `
-            --output release/DashLook-x64 `
-            -p:PublishSingleFile=true `
-            -p:IncludeNativeLibrariesForSelfExtract=true `
-            -p:Version=${{ steps.version.outputs.version }}
-
-      - name: Publish Portable ZIP
-        run: |
-          dotnet publish src/DashLook/DashLook.csproj `
-            --configuration Release `
-            --runtime win-x64 `
-            --output release/DashLook-portable `
-            -p:Version=${{ steps.version.outputs.version }}
-          Compress-Archive -Path release/DashLook-portable/* `
-            -DestinationPath release/DashLook-${{ steps.version.outputs.version }}-portable-x64.zip
+          $v = "${{ github.ref_name }}".TrimStart('v')
+          echo "version=$v" >> $env:GITHUB_OUTPUT
         shell: pwsh
 
-      - name: Create GitHub Release
+      - name: Restore & Build
+        run: |
+          dotnet restore src/DashLook/DashLook.csproj
+          dotnet build src/DashLook/DashLook.csproj --configuration Release --no-restore -p:Version=${{ steps.ver.outputs.version }}
+
+      - name: Publish single EXE
+        run: |
+          dotnet publish src/DashLook/DashLook.csproj `
+            --configuration Release --runtime win-x64 --self-contained true `
+            --output release/win-single `
+            -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:Version=${{ steps.ver.outputs.version }}
+
+      - name: Publish portable
+        run: |
+          dotnet publish src/DashLook/DashLook.csproj `
+            --configuration Release --runtime win-x64 `
+            --output release/win-portable `
+            -p:Version=${{ steps.ver.outputs.version }}
+          Compress-Archive -Path release/win-portable/* `
+            -DestinationPath "release/DashLook-${{ steps.ver.outputs.version }}-windows-x64.zip"
+        shell: pwsh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: |
+            release/win-single/DashLook.exe
+            release/DashLook-${{ steps.ver.outputs.version }}-windows-x64.zip
+
+  build-linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Extract version
+        id: ver
+        run: echo "version=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Restore & Build
+        run: |
+          dotnet restore src/DashLook.Linux/DashLook.Linux.csproj
+          dotnet build src/DashLook.Linux/DashLook.Linux.csproj --configuration Release --no-restore -p:Version=${{ steps.ver.outputs.version }}
+
+      - name: Publish linux-x64
+        run: |
+          dotnet publish src/DashLook.Linux/DashLook.Linux.csproj \
+            --configuration Release --runtime linux-x64 --self-contained true \
+            --output release/linux-x64 \
+            -p:PublishSingleFile=true \
+            -p:Version=${{ steps.ver.outputs.version }}
+          tar -czf release/DashLook-${{ steps.ver.outputs.version }}-linux-x64.tar.gz \
+            -C release/linux-x64 .
+
+      - name: Publish linux-arm64
+        run: |
+          dotnet publish src/DashLook.Linux/DashLook.Linux.csproj \
+            --configuration Release --runtime linux-arm64 --self-contained true \
+            --output release/linux-arm64 \
+            -p:Version=${{ steps.ver.outputs.version }}
+          tar -czf release/DashLook-${{ steps.ver.outputs.version }}-linux-arm64.tar.gz \
+            -C release/linux-arm64 .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-release
+          path: release/DashLook-*.tar.gz
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-release
+          path: release/
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-release
+          path: release/
+
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           name: "DashLook ${{ github.ref_name }}"
-          draft: false
           prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
           body: |
             ## DashLook ${{ github.ref_name }}
 
-            ### Installation
-            1. **Portable** — Download the ZIP, extract, run `DashLook.exe`
-            2. **Single EXE** — Download `DashLook.exe`, run directly
+            > Instant file preview for Windows and Linux
 
-            ### What's New
-            See [CHANGELOG.md](CHANGELOG.md) for full details.
+            ### Download
+
+            | Platform | File | Notes |
+            |---|---|---|
+            | 🪟 Windows | `DashLook.exe` | Single EXE, just run it |
+            | 🪟 Windows | `DashLook-*-windows-x64.zip` | Portable ZIP |
+            | 🐧 Linux | `DashLook-*-linux-x64.tar.gz` | x64 binary |
+            | 🐧 Linux | `DashLook-*-linux-arm64.tar.gz` | ARM64 (Raspberry Pi etc.) |
+
+            ### Linux usage
+            ```bash
+            tar -xzf DashLook-*-linux-x64.tar.gz
+            chmod +x DashLook
+            ./DashLook /path/to/file.png
+            ```
 
             ---
             Built by [ARG RABBI](https://itrabbi24.github.io/)
-          files: |
-            release/DashLook-x64/DashLook.exe
-            release/DashLook-${{ steps.version.outputs.version }}-portable-x64.zip
+          files: release/*
