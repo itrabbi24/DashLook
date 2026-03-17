@@ -1,0 +1,19 @@
+<UserControl x:Class="DashLook.Plugin.TextViewer.TextViewerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:avalon="http://icsharpcode.net/sharpdevelop/avalonedit"
+             Background="#181825">
+
+    <avalon:TextEditor x:Name="Editor"
+                       FontFamily="Cascadia Code, Consolas, Courier New"
+                       FontSize="13"
+                       Foreground="#CDD6F4"
+                       Background="#181825"
+                       IsReadOnly="True"
+                       ShowLineNumbers="True"
+                       LineNumbersForeground="#585B70"
+                       WordWrap="False"
+                       HorizontalScrollBarVisibility="Auto"
+                       VerticalScrollBarVisibility="Auto"
+                       Padding="8"/>
+</UserControl>

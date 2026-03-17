@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>DashLook.Common</AssemblyName>
+    <RootNamespace>DashLook.Common</RootNamespace>
+    <Version>1.0.0</Version>
+    <Authors>DashLook Contributors</Authors>
+    <Description>Shared interfaces and utilities for DashLook plugins</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+</Project>

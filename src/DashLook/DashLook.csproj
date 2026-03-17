@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>DashLook</AssemblyName>
+    <RootNamespace>DashLook</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Version>1.0.0</Version>
+    <Authors>DashLook Contributors</Authors>
+    <Description>Instant file preview for Windows — press Space to preview any file</Description>
+    <ApplicationIcon>Resources\dashlook.ico</ApplicationIcon>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DashLook.Common\DashLook.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- WebView2 for HTML/PDF/Markdown rendering -->
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2792.45" />
+    <!-- Hardcodet NotifyIcon for system tray -->
+    <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="1.1.0" />
+    <!-- Newtonsoft.Json for settings -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\dashlook.ico" Condition="Exists('Resources\dashlook.ico')" />
+    <Resource Include="Resources\*.png" />
+  </ItemGroup>
+
+  <!-- Copy plugin DLLs to Plugins\ subfolder next to the EXE -->
+  <ItemGroup>
+    <None Include="..\..\build\Plugins\**\*" Condition="Exists('..\..\build\Plugins')"
+          CopyToOutputDirectory="PreserveNewest"
+          Link="Plugins\%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>

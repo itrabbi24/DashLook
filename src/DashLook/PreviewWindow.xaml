@@ -1,0 +1,171 @@
+<Window x:Class="DashLook.PreviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="CanResizeWithGrip"
+        MinWidth="400" MinHeight="300"
+        Width="960" Height="660"
+        WindowStartupLocation="CenterScreen"
+        ShowInTaskbar="False"
+        Topmost="False"
+        d:DesignHeight="660" d:DesignWidth="960"
+        KeyDown="Window_KeyDown">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" ResizeBorderThickness="6" CornerRadius="0" GlassFrameThickness="0"/>
+    </WindowChrome.WindowChrome>
+
+    <Border Background="{StaticResource WindowBackground}"
+            CornerRadius="12"
+            Margin="6"
+            Effect="{StaticResource WindowShadow}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="44"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="30"/>
+            </Grid.RowDefinitions>
+
+            <!-- ── Title Bar ──────────────────────────────────────────────── -->
+            <Grid Grid.Row="0"
+                  Background="Transparent"
+                  MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="44"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- File type icon -->
+                <TextBlock x:Name="FileTypeIcon"
+                           Grid.Column="0"
+                           Text="📄"
+                           FontSize="20"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+
+                <!-- File name -->
+                <TextBlock x:Name="TitleText"
+                           Grid.Column="1"
+                           Text="DashLook"
+                           Foreground="{StaticResource TextPrimary}"
+                           FontSize="13"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis"/>
+
+                <!-- Window controls -->
+                <StackPanel Grid.Column="2"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            Margin="0,0,8,0">
+                    <Button x:Name="OpenExternalBtn"
+                            Content="⬡"
+                            Style="{StaticResource TitleBarButton}"
+                            ToolTip="Open with default app"
+                            Click="OpenExternal_Click"/>
+                    <Button x:Name="CloseBtn"
+                            Content="✕"
+                            Style="{StaticResource CloseButton}"
+                            Click="Close_Click"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- ── Content Area ───────────────────────────────────────────── -->
+            <Border Grid.Row="1"
+                    Background="{StaticResource ContentBackground}"
+                    Margin="0">
+                <Grid>
+                    <!-- Plugin viewer is injected here -->
+                    <ContentPresenter x:Name="ViewerHost"/>
+
+                    <!-- Loading overlay -->
+                    <Grid x:Name="LoadingOverlay" Visibility="Visible">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock Text="⟳"
+                                       Foreground="{StaticResource AccentColor}"
+                                       FontSize="48"
+                                       HorizontalAlignment="Center"
+                                       x:Name="SpinnerText">
+                                <TextBlock.RenderTransform>
+                                    <RotateTransform x:Name="SpinnerRotate" CenterX="24" CenterY="24"/>
+                                </TextBlock.RenderTransform>
+                                <TextBlock.Triggers>
+                                    <EventTrigger RoutedEvent="Loaded">
+                                        <BeginStoryboard>
+                                            <Storyboard RepeatBehavior="Forever">
+                                                <DoubleAnimation
+                                                    Storyboard.TargetName="SpinnerRotate"
+                                                    Storyboard.TargetProperty="Angle"
+                                                    From="0" To="360" Duration="0:0:1"/>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </TextBlock.Triggers>
+                            </TextBlock>
+                            <TextBlock x:Name="LoadingText"
+                                       Text="Loading preview…"
+                                       Foreground="{StaticResource TextSecondary}"
+                                       FontSize="13"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,12,0,0"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Error overlay -->
+                    <Grid x:Name="ErrorOverlay" Visibility="Collapsed">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock Text="⚠"
+                                       Foreground="#E86343"
+                                       FontSize="48"
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock x:Name="ErrorText"
+                                       Text="Cannot preview this file."
+                                       Foreground="{StaticResource TextSecondary}"
+                                       FontSize="13"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,12,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- ── Status Bar ─────────────────────────────────────────────── -->
+            <Border Grid.Row="2"
+                    Background="{StaticResource StatusBarBackground}"
+                    CornerRadius="0,0,12,12">
+                <Grid Margin="12,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock x:Name="FileTypeText"
+                               Grid.Column="0"
+                               Foreground="{StaticResource TextSecondary}"
+                               FontSize="11"
+                               VerticalAlignment="Center"/>
+
+                    <TextBlock x:Name="FileSizeText"
+                               Grid.Column="1"
+                               Foreground="{StaticResource TextSecondary}"
+                               FontSize="11"
+                               VerticalAlignment="Center"
+                               Margin="0,0,16,0"/>
+
+                    <TextBlock Grid.Column="2"
+                               Text="[Space] Close  [Esc] Close  [Enter] Open"
+                               Foreground="{StaticResource TextDisabled}"
+                               FontSize="10"
+                               VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

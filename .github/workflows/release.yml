@@ -1,0 +1,81 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & Publish Release
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $version = $tag.TrimStart('v')
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+        shell: pwsh
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore & Build
+        run: |
+          dotnet restore DashLook.sln
+          dotnet build DashLook.sln --configuration Release --no-restore `
+            -p:Version=${{ steps.version.outputs.version }}
+
+      - name: Publish x64 (single-file)
+        run: |
+          dotnet publish src/DashLook/DashLook.csproj `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained true `
+            --output release/DashLook-x64 `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:Version=${{ steps.version.outputs.version }}
+
+      - name: Publish Portable ZIP
+        run: |
+          dotnet publish src/DashLook/DashLook.csproj `
+            --configuration Release `
+            --runtime win-x64 `
+            --output release/DashLook-portable `
+            -p:Version=${{ steps.version.outputs.version }}
+          Compress-Archive -Path release/DashLook-portable/* `
+            -DestinationPath release/DashLook-${{ steps.version.outputs.version }}-portable-x64.zip
+        shell: pwsh
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "DashLook ${{ github.ref_name }}"
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+          body: |
+            ## DashLook ${{ github.ref_name }}
+
+            ### Installation
+            1. **Portable** — Download the ZIP, extract, run `DashLook.exe`
+            2. **Single EXE** — Download `DashLook.exe`, run directly
+
+            ### What's New
+            See [CHANGELOG.md](CHANGELOG.md) for full details.
+
+            ---
+            Built by [ARG RABBI](https://itrabbi24.github.io/)
+          files: |
+            release/DashLook-x64/DashLook.exe
+            release/DashLook-${{ steps.version.outputs.version }}-portable-x64.zip

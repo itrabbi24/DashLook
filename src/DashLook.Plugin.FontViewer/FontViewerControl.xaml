@@ -1,0 +1,52 @@
+<UserControl x:Class="DashLook.Plugin.FontViewer.FontViewerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#181825">
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="32">
+            <!-- Font name header -->
+            <TextBlock x:Name="FontNameText"
+                       FontSize="22"
+                       FontWeight="Bold"
+                       Foreground="#CBA6F7"
+                       Margin="0,0,0,8"/>
+            <TextBlock x:Name="FontDetailText"
+                       FontSize="12"
+                       Foreground="#A6ADC8"
+                       Margin="0,0,0,24"/>
+
+            <!-- Pangram samples at different sizes -->
+            <TextBlock Text="Size 48" Foreground="#585B70" FontSize="11" Margin="0,0,0,4"/>
+            <TextBlock x:Name="Sample48" FontSize="48" Foreground="#CDD6F4" Margin="0,0,0,20"
+                       TextWrapping="Wrap"/>
+
+            <TextBlock Text="Size 32" Foreground="#585B70" FontSize="11" Margin="0,0,0,4"/>
+            <TextBlock x:Name="Sample32" FontSize="32" Foreground="#CDD6F4" Margin="0,0,0,20"
+                       TextWrapping="Wrap"/>
+
+            <TextBlock Text="Size 20" Foreground="#585B70" FontSize="11" Margin="0,0,0,4"/>
+            <TextBlock x:Name="Sample20" FontSize="20" Foreground="#CDD6F4" Margin="0,0,0,20"
+                       TextWrapping="Wrap"/>
+
+            <TextBlock Text="Size 14" Foreground="#585B70" FontSize="11" Margin="0,0,0,4"/>
+            <TextBlock x:Name="Sample14" FontSize="14" Foreground="#CDD6F4" Margin="0,0,0,20"
+                       TextWrapping="Wrap"/>
+
+            <!-- Alphabet showcase -->
+            <Separator Background="#313244" Margin="0,8,0,16"/>
+            <TextBlock Text="Alphabet" Foreground="#585B70" FontSize="11" Margin="0,0,0,4"/>
+            <TextBlock x:Name="AlphabetText"
+                       Text="AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz"
+                       FontSize="18"
+                       Foreground="#CDD6F4"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,12"/>
+            <TextBlock x:Name="NumbersText"
+                       Text="0123456789 !@#$%^&amp;*()_+-=[]{}|;':&quot;,.&lt;&gt;?"
+                       FontSize="18"
+                       Foreground="#A6ADC8"
+                       TextWrapping="Wrap"/>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

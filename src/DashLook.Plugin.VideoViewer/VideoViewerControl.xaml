@@ -1,0 +1,78 @@
+<UserControl x:Class="DashLook.Plugin.VideoViewer.VideoViewerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vlc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF"
+             Background="#000000">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Video surface -->
+        <vlc:VideoView x:Name="VideoView"
+                       Grid.Row="0"
+                       Background="Black"/>
+
+        <!-- Audio placeholder when no video track -->
+        <Border x:Name="AudioPlaceholder"
+                Grid.Row="0"
+                Background="#181825"
+                Visibility="Collapsed">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="🎵" FontSize="72" HorizontalAlignment="Center"/>
+                <TextBlock x:Name="AudioFileName" FontSize="16" Foreground="#CDD6F4"
+                           HorizontalAlignment="Center" Margin="0,12,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Controls bar -->
+        <Border Grid.Row="1" Background="#1E1E2E" Padding="12,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="80"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Play/Pause -->
+                <Button x:Name="PlayPauseBtn"
+                        Grid.Column="0"
+                        Content="⏸"
+                        FontSize="16"
+                        Background="Transparent"
+                        Foreground="#CDD6F4"
+                        BorderThickness="0"
+                        Cursor="Hand"
+                        Width="36" Height="36"
+                        Click="PlayPause_Click"/>
+
+                <!-- Progress -->
+                <Slider x:Name="ProgressSlider"
+                        Grid.Column="1"
+                        Margin="8,0"
+                        Minimum="0" Maximum="1"
+                        VerticalAlignment="Center"
+                        ValueChanged="Progress_ValueChanged"/>
+
+                <!-- Time -->
+                <TextBlock x:Name="TimeText"
+                           Grid.Column="2"
+                           Text="0:00 / 0:00"
+                           Foreground="#A6ADC8"
+                           FontSize="11"
+                           VerticalAlignment="Center"
+                           Margin="0,0,8,0"/>
+
+                <!-- Volume -->
+                <Slider x:Name="VolumeSlider"
+                        Grid.Column="3"
+                        Minimum="0" Maximum="100"
+                        Value="80"
+                        VerticalAlignment="Center"
+                        ValueChanged="Volume_ValueChanged"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

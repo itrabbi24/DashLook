@@ -1,0 +1,63 @@
+## DashLook .gitignore
+
+# Build outputs
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+out/
+
+# Visual Studio
+.vs/
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+*.rsuser
+*.pdb
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+NuGet.Config
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+
+# MSBuild
+*.pidb
+*.svclog
+*.scc
+
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/
+
+# Build scripts artifacts
+Build/
+Release/
+
+# Installer artifacts
+installer/bin/
+installer/obj/
+
+# User-specific
+*.tmp
+*.bak
+*.cache
+
+# Publish output
+publish/

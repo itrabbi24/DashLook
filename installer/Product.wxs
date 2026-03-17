@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  DashLook WiX v4 Installer
+  Requires: WiX Toolset v4+
+  Build:    dotnet build installer\DashLook.Installer.wixproj -c Release
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+  <Package Name="DashLook"
+           Manufacturer="ARG RABBI — itrabbi24.github.io"
+           Version="1.0.0.0"
+           UpgradeCode="DCA7F3B1-4E2A-4F3D-9B1C-8E2D7A4B5C6F"
+           Language="1033"
+           Codepage="1252"
+           InstallerVersion="500"
+           Compressed="yes">
+
+    <SummaryInformation Description="DashLook — Instant file preview for Windows"/>
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of DashLook is already installed." />
+
+    <MediaTemplate EmbedCab="yes"/>
+
+    <!-- ── UI ── -->
+    <ui:WixUI Id="WixUI_InstallDir"/>
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER"/>
+
+    <!-- ── Install directory ── -->
+    <StandardDirectory Id="ProgramFiles6432Folder">
+      <Directory Id="INSTALLFOLDER" Name="DashLook">
+        <Directory Id="PLUGINSFOLDER" Name="Plugins"/>
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="DashLook"/>
+    </StandardDirectory>
+
+    <StandardDirectory Id="DesktopFolder"/>
+    <StandardDirectory Id="StartupFolder"/>
+
+    <!-- ── Components ── -->
+    <ComponentGroup Id="MainExecutable" Directory="INSTALLFOLDER">
+      <Component Id="DashLookExe" Guid="A1B2C3D4-1111-1111-1111-111111111111">
+        <File Id="DashLookExeFile"
+              Source="$(var.DashLook.TargetPath)"
+              KeyPath="yes"/>
+        <!-- Auto-start on Windows login -->
+        <RegistryValue Root="HKCU"
+                       Key="Software\Microsoft\Windows\CurrentVersion\Run"
+                       Name="DashLook"
+                       Value="[INSTALLFOLDER]DashLook.exe"
+                       Type="string"/>
+      </Component>
+
+      <!-- Runtime files -->
+      <Component Id="RuntimeFiles" Guid="B2C3D4E5-2222-2222-2222-222222222222">
+        <File Source="$(var.DashLook.TargetDir)DashLook.Common.dll" KeyPath="yes"/>
+      </Component>
+    </ComponentGroup>
+
+    <!-- Plugin components (harvested by heat.exe in build script) -->
+    <ComponentGroup Id="Plugins" Directory="PLUGINSFOLDER">
+      <!-- Populated by WiX Heat during build — see scripts\build.ps1 -->
+    </ComponentGroup>
+
+    <!-- Start menu shortcut -->
+    <ComponentGroup Id="Shortcuts" Directory="ApplicationProgramsFolder">
+      <Component Id="StartMenuShortcut" Guid="C3D4E5F6-3333-3333-3333-333333333333">
+        <Shortcut Id="StartMenuShortcutDashLook"
+                  Name="DashLook"
+                  Description="Instant file preview for Windows"
+                  Target="[INSTALLFOLDER]DashLook.exe"
+                  WorkingDirectory="INSTALLFOLDER"/>
+        <RemoveFolder Id="RemoveStartMenu" On="uninstall"/>
+        <RegistryValue Root="HKCU"
+                       Key="Software\DashLook"
+                       Name="Installed"
+                       Value="1"
+                       Type="integer"
+                       KeyPath="yes"/>
+      </Component>
+    </ComponentGroup>
+
+    <!-- Desktop shortcut (optional) -->
+    <ComponentGroup Id="DesktopShortcuts" Directory="DesktopFolder">
+      <Component Id="DesktopShortcut" Guid="D4E5F6A7-4444-4444-4444-444444444444">
+        <Condition>DESKTOP_SHORTCUT</Condition>
+        <Shortcut Id="DesktopShortcutDashLook"
+                  Name="DashLook"
+                  Target="[INSTALLFOLDER]DashLook.exe"
+                  WorkingDirectory="INSTALLFOLDER"/>
+        <RegistryValue Root="HKCU"
+                       Key="Software\DashLook"
+                       Name="DesktopShortcut"
+                       Value="1"
+                       Type="integer"
+                       KeyPath="yes"/>
+      </Component>
+    </ComponentGroup>
+
+    <!-- Feature -->
+    <Feature Id="Complete" Title="DashLook" Level="1">
+      <ComponentGroupRef Id="MainExecutable"/>
+      <ComponentGroupRef Id="Plugins"/>
+      <ComponentGroupRef Id="Shortcuts"/>
+      <ComponentGroupRef Id="DesktopShortcuts"/>
+    </Feature>
+
+  </Package>
+</Wix>

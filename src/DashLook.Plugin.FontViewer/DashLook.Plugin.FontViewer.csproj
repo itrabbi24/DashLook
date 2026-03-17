@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>DashLook.Plugin.FontViewer</AssemblyName>
+    <RootNamespace>DashLook.Plugin.FontViewer</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DashLook.Common\DashLook.Common.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,15 @@
+<Project Sdk="WixToolset.Sdk/5.0.0">
+  <PropertyGroup>
+    <OutputName>DashLook-Setup</OutputName>
+    <OutputType>Package</OutputType>
+    <Platform>x64</Platform>
+    <DefineConstants>
+      DashLook.TargetPath=$(SolutionDir)src\DashLook\bin\Release\net9.0-windows\DashLook.exe;
+      DashLook.TargetDir=$(SolutionDir)src\DashLook\bin\Release\net9.0-windows\
+    </DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Product.wxs"/>
+  </ItemGroup>
+</Project>
