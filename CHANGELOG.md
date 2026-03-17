@@ -2,6 +2,12 @@
 
 All notable changes to DashLook will be documented here.
 
+## [1.0.18] - 2026-03-17
+
+### Fixed
+- Added a dedicated Windows desktop-selection fallback using the desktop list view when shell automation does not resolve the selected item.
+- Kept Space key handling fast while improving selected-file retries for preview opening.
+
 ## [1.0.17] - 2026-03-17
 
 ### Fixed
@@ -44,6 +50,7 @@ All notable changes to DashLook will be documented here.
 - Single-instance enforcement
 - WiX MSI installer
 - GitHub Actions CI/CD pipeline
+
 
 
 

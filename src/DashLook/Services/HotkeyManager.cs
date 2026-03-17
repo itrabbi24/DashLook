@@ -15,7 +15,7 @@ public sealed class HotkeyManager : IDisposable
     private const int VK_SPACE = 0x20;
 
     private IntPtr _hookHandle = IntPtr.Zero;
-    private NativeMethods.LowLevelKeyboardProc? _hookProc; // Keep alive!
+    private NativeMethods.LowLevelKeyboardProc? _hookProc;
 
     public void Start()
     {
@@ -25,6 +25,10 @@ public sealed class HotkeyManager : IDisposable
             _hookProc,
             NativeMethods.GetModuleHandle(null),
             0);
+
+        LogService.Write(_hookHandle == IntPtr.Zero
+            ? $"Keyboard hook install failed: {Marshal.GetLastWin32Error()}"
+            : "Keyboard hook installed.");
     }
 
     public void Stop()
@@ -33,6 +37,7 @@ public sealed class HotkeyManager : IDisposable
         {
             NativeMethods.UnhookWindowsHookEx(_hookHandle);
             _hookHandle = IntPtr.Zero;
+            LogService.Write("Keyboard hook removed.");
         }
     }
 
@@ -43,6 +48,7 @@ public sealed class HotkeyManager : IDisposable
             var kbs = Marshal.PtrToStructure<NativeMethods.KBDLLHOOKSTRUCT>(lParam);
             if (kbs.vkCode == VK_SPACE && FileExplorerHelper.IsExplorerContextFocused())
             {
+                LogService.Write("Space detected in Explorer context.");
                 SpacePressed?.Invoke(this, SpacePressedEventArgs.Instance);
                 return (IntPtr)1;
             }

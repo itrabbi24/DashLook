@@ -8,7 +8,7 @@
     <LangVersion>latest</LangVersion>
     <AssemblyName>DashLook</AssemblyName>
     <RootNamespace>DashLook.Linux</RootNamespace>
-    <Version>1.0.17</Version>
+    <Version>1.0.18</Version>
     <Authors>ARG RABBI</Authors>
     <Description>DashLook for Linux — instant file preview using Avalonia UI</Description>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
@@ -28,6 +28,7 @@
   </ItemGroup>
 
 </Project>
+
 
 
 
