@@ -1,4 +1,4 @@
-<s1g xmlns="http://www.w3.org/2000/s1g" 1iewBox="0 0 1200 360" width="1200" height="360">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" width="1200" height="360" role="img" aria-label="DashLook banner">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#f8fafc"/>
@@ -33,17 +33,11 @@
 
   <text x="364" y="148" font-family="Segoe UI, Arial, sans-serif" font-size="84" font-weight="800" fill="#0f172a">DashLook</text>
   <rect x="366" y="168" width="236" height="10" rx="5" fill="url(#accent)"/>
-  <text x="364" y="220" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="600" fill="#334155">Windows file pre1iew that feels immediate.</text>
-  <text x="364" y="268" font-family="Segoe UI, Arial, sans-serif" font-size="24" fill="#475569">Select a file in Explorer or on the desktop. Press Space. Peek instantly.</text>
+  <text x="364" y="220" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="600" fill="#334155">Windows file preview that feels immediate.</text>
+  <text x="364" y="268" font-family="Segoe UI, Arial, sans-serif" font-size="24" fill="#475569">Select a file in Explorer or on the desktop. Press Space. Preview instantly.</text>
 
   <rect x="366" y="292" width="172" height="40" rx="20" fill="#0f172a"/>
   <text x="452" y="318" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#f8fafc" text-anchor="middle">Windows 10 / 11</text>
   <rect x="554" y="292" width="146" height="40" rx="20" fill="#ffffff" stroke="#cbd5e1"/>
-  <text x="627" y="318" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#0f172a" text-anchor="middle">11.0.22</text>
+  <text x="627" y="318" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#0f172a" text-anchor="middle">v1.1.0</text>
 </svg>
-
-
-
-
-
-
