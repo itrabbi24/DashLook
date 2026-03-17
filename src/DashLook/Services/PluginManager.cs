@@ -26,7 +26,20 @@ public sealed class PluginManager
     /// </summary>
     public void LoadPlugins()
     {
-        // Load built-in plugins (same assembly or referenced assemblies in bin)
+        // In single-file publish, referenced assemblies are bundled but loaded lazily.
+        // Force-load every DashLook.Plugin.* assembly so the types are discoverable.
+        foreach (var asmName in Assembly.GetEntryAssembly()?.GetReferencedAssemblies()
+                                ?? Array.Empty<AssemblyName>())
+        {
+            if (asmName.Name?.StartsWith("DashLook.Plugin.", StringComparison.Ordinal) == true)
+                try { Assembly.Load(asmName); } catch { /* skip if unavailable */ }
+        }
+
+        // Portable (non-single-file): DLLs sit next to the EXE.
+        foreach (var dll in Directory.GetFiles(AppContext.BaseDirectory, "DashLook.Plugin.*.dll"))
+            try { Assembly.LoadFrom(dll); } catch { }
+
+        // Discover viewers across all now-loaded assemblies
         LoadFromAssemblies(AppDomain.CurrentDomain.GetAssemblies());
 
         // Load external plugins from Plugins\

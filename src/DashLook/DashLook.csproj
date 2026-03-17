@@ -20,6 +20,14 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DashLook.Common\DashLook.Common.csproj" />
+    <ProjectReference Include="..\DashLook.Plugin.TextViewer\DashLook.Plugin.TextViewer.csproj" />
+    <ProjectReference Include="..\DashLook.Plugin.ImageViewer\DashLook.Plugin.ImageViewer.csproj" />
+    <ProjectReference Include="..\DashLook.Plugin.PdfViewer\DashLook.Plugin.PdfViewer.csproj" />
+    <ProjectReference Include="..\DashLook.Plugin.HtmlViewer\DashLook.Plugin.HtmlViewer.csproj" />
+    <ProjectReference Include="..\DashLook.Plugin.MarkdownViewer\DashLook.Plugin.MarkdownViewer.csproj" />
+    <ProjectReference Include="..\DashLook.Plugin.ArchiveViewer\DashLook.Plugin.ArchiveViewer.csproj" />
+    <ProjectReference Include="..\DashLook.Plugin.FontViewer\DashLook.Plugin.FontViewer.csproj" />
+    <ProjectReference Include="..\DashLook.Plugin.VideoViewer\DashLook.Plugin.VideoViewer.csproj" />
   </ItemGroup>
 
   <ItemGroup>
